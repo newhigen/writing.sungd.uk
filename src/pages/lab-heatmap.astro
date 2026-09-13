@@ -1,0 +1,507 @@
+---
+// 임시: 독서 히트맵 시안 모음. 고르면 지운다.
+import '@/styles/global.css'
+import BaseHead from '@/components/layout/BaseHead.astro'
+import DrawerFrame from '@/components/layout/DrawerFrame.astro'
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import { loadBooks, getHeatmapData, intensityLevel, type Book } from '@/utils/books'
+import { getCollection } from 'astro:content'
+
+const books = loadBooks()
+const { cells, years } = getHeatmapData(books)
+const now = new Date()
+const currentYear = now.getFullYear()
+const currentMonth = now.getMonth() + 1
+const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+
+const posts = await getCollection('posts', ({ id }) => !id.startsWith('_'))
+const norm = (t: string) => t.toLowerCase().replace(/[^a-z0-9가-힣ㄱ-ㅎㅏ-ㅣ]/g, '')
+const reviewed = new Set(posts.map((p) => norm(p.data.title)))
+const hasReview = (b: Book) => reviewed.has(norm(b.title))
+
+// 제목으로 정해지는 흔들림: 같은 책은 늘 같은 높이·굵기·농도
+const hash = (s: string) => [...s].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7)
+const spine = (b: Book) => {
+  const h = hash(b.title)
+  return {
+    height: 72 + (h % 29), // 72~100 %
+    width: 3 + Math.min(4, Math.floor(b.title.length / 5)), // 제목이 길면 두꺼운 책
+    tone: 0.3 + ((h >>> 5) % 5) * 0.1, // 0.3~0.7
+    review: hasReview(b)
+  }
+}
+
+const cellOf = (year: number, month: number) => cells.get(`${year}-${String(month).padStart(2, '0')}`)
+const isFuture = (year: number, month: number) => year > currentYear || (year === currentYear && month > currentMonth)
+const yearBooks = (year: number) =>
+  books.filter((b) => b.year === year).sort((a, b) => a.month - b.month || a.title.localeCompare(b.title))
+const maxCount = Math.max(...[...cells.values()].map((c) => c.count))
+const tip = (b: Book) => `${b.year}년 ${b.month}월 · ${b.title}`
+---
+
+<BaseLayout title="히트맵 시안" description="독서 히트맵 시안" type="page">
+  <BaseHead title="히트맵 시안" description="독서 히트맵 시안" slot="head" />
+  <DrawerFrame active="독서 기록">
+    <h1 class="lab-title">독서 히트맵 시안 <em>{books.length}권 · 가장 많이 읽은 달 {maxCount}권</em></h1>
+    <p class="lab-note">크게 그린 판이다. 책 하나하나에 올리면 제목이 뜬다. 서평을 쓴 책은 강조색.</p>
+
+    <!-- 가 · 책등 칸 : 칸은 그대로, 칸 안에 그달 읽은 권수만큼 책등이 선다 -->
+    <section class="lab">
+      <h2>가 · 책등 칸</h2>
+      <p>달 칸 모양은 그대로 두고, 칸 안에 읽은 권수만큼 책이 선다. 칸이 찰수록 많이 읽은 달.</p>
+      <div class="va">
+        <div class="va-row va-head">
+          <span></span>
+          {months.map((m) => <span>{m}</span>)}
+          <span></span>
+        </div>
+        {
+          years.map((year) => (
+            <div class="va-row">
+              <span class="yr">{year}</span>
+              {months.map((m) => {
+                const c = cellOf(year, m)
+                return (
+                  <span class:list={['va-cell', { future: isFuture(year, m) }]}>
+                    {c?.books.map((b) => {
+                      const s = spine(b)
+                      return (
+                        <i
+                          class:list={['bk', { rv: s.review }]}
+                          style={`height:${s.height}%;width:${s.width}px;--tone:${s.tone}`}
+                          data-tip={tip(b)}
+                        />
+                      )
+                    })}
+                  </span>
+                )
+              })}
+              <span class="sum">{yearBooks(year).length}</span>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- 나 · 책 더미 : 달마다 눕힌 책이 위로 쌓인다 -->
+    <section class="lab">
+      <h2>나 · 책 더미</h2>
+      <p>책을 눕혀 쌓는다. 더미 높이가 곧 권수라 막대그래프처럼 읽힌다.</p>
+      <div class="vb">
+        {
+          years.map((year) => (
+            <div class="vb-row">
+              <span class="yr">{year}</span>
+              <div class="vb-months">
+                {months.map((m) => {
+                  const c = cellOf(year, m)
+                  return (
+                    <span class:list={['vb-cell', { future: isFuture(year, m) }]}>
+                      {c?.books.map((b, i) => {
+                        const h = hash(b.title)
+                        const s = spine(b)
+                        return (
+                          <i
+                            class:list={['bk-flat', { rv: s.review }]}
+                            style={`width:${70 + (h % 26)}%;margin-left:${(h >>> 3) % 4}px;--tone:${s.tone}`}
+                            data-tip={tip(b)}
+                          />
+                        )
+                      })}
+                    </span>
+                  )
+                })}
+              </div>
+              <span class="sum">{yearBooks(year).length}</span>
+            </div>
+          ))
+        }
+        <div class="vb-row vb-foot">
+          <span></span>
+          <div class="vb-months">
+            {months.map((m) => <span>{m}</span>)}
+          </div>
+          <span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 다 · 해마다 한 칸 책장 : 그해 읽은 책을 달 순서로 꽂는다 -->
+    <section class="lab">
+      <h2>다 · 해마다 한 칸 책장</h2>
+      <p>한 해가 책장 한 칸이다. 읽은 순서대로 꽂고 달이 바뀌는 자리에 틈을 둔다. 많이 읽은 해는 칸이 찬다.</p>
+      <div class="vc">
+        {
+          years.map((year) => {
+            const list = yearBooks(year)
+            return (
+              <div class="vc-row">
+                <span class="yr">{year}</span>
+                <div class="vc-shelf">
+                  {list.map((b, i) => {
+                    const s = spine(b)
+                    const gap = i > 0 && list[i - 1].month !== b.month
+                    return (
+                      <i
+                        class:list={['bk', { rv: s.review, gap }]}
+                        style={`height:${s.height}%;width:${s.width + 2}px;--tone:${s.tone}`}
+                        data-tip={tip(b)}
+                      />
+                    )
+                  })}
+                </div>
+                <span class="sum">{list.length}</span>
+              </div>
+            )
+          })
+        }
+      </div>
+    </section>
+
+    <!-- 라 · 책 아이콘 농도 : 지금 칸을 펼친 책 모양으로만 바꾼다 -->
+    <section class="lab">
+      <h2>라 · 펼친 책 칸</h2>
+      <p>지금 히트맵에서 네모만 펼친 책 모양으로 바꾼다. 농도로 권수를 낸다. 차림표에 두는 작은 판에도 쓸 수 있다.</p>
+      <div class="vd">
+        <div class="vd-row vd-head">
+          <span></span>
+          {months.map((m) => <span>{m}</span>)}
+          <span></span>
+        </div>
+        {
+          years.map((year) => (
+            <div class="vd-row">
+              <span class="yr">{year}</span>
+              {months.map((m) => {
+                const c = cellOf(year, m)
+                const count = c?.count ?? 0
+                return (
+                  <svg
+                    class:list={['vd-cell', { future: isFuture(year, m) }]}
+                    data-level={String(intensityLevel(count))}
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    data-tip={count ? `${year}년 ${m}월 · ${count}권` : undefined}
+                  >
+                    <path d="M12 6.5C10 5 7 4.5 3 4.5v14c4 0 7 .5 9 2 2-1.5 5-2 9-2v-14c-4 0-7 .5-9 2Z" />
+                    <path class="fold" d="M12 6.5v14" />
+                  </svg>
+                )
+              })}
+              <span class="sum">{yearBooks(year).length}</span>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- 마 · 달마다 쌓인 권수 : 열두 달 책꽂이, 해는 층으로 -->
+    <section class="lab">
+      <h2>마 · 열두 달 책꽂이</h2>
+      <p>세로가 달, 가로가 해. 해마다 같은 달끼리 비교된다. 책등에 해 대신 농도를 준다(최근일수록 진하게).</p>
+      <div class="ve">
+        {
+          months.map((m) => {
+            const list = books
+              .filter((b) => b.month === m)
+              .sort((a, b) => a.year - b.year || a.title.localeCompare(b.title))
+            return (
+              <div class="ve-row">
+                <span class="yr">{m}월</span>
+                <div class="ve-shelf">
+                  {list.map((b, i) => {
+                    const s = spine(b)
+                    const age = Math.min(4, currentYear - b.year)
+                    const gap = i > 0 && list[i - 1].year !== b.year
+                    return (
+                      <i
+                        class:list={['bk-lay', { rv: s.review, gap }]}
+                        style={`width:${s.width + 2}px;--tone:${0.85 - age * 0.15}`}
+                        data-tip={tip(b)}
+                      />
+                    )
+                  })}
+                </div>
+                <span class="sum">{list.length}</span>
+              </div>
+            )
+          })
+        }
+      </div>
+    </section>
+  </DrawerFrame>
+</BaseLayout>
+
+<script>
+  function initLabTip() {
+    let el: HTMLDivElement | null = null
+    const hide = () => {
+      el?.remove()
+      el = null
+    }
+    document.querySelectorAll<HTMLElement | SVGElement>('[data-tip]').forEach((n) => {
+      n.addEventListener('mouseenter', () => {
+        hide()
+        el = document.createElement('div')
+        el.className = 'lab-tip'
+        el.textContent = n.getAttribute('data-tip')
+        document.body.appendChild(el)
+        const r = n.getBoundingClientRect()
+        el.style.left = `${Math.min(r.left + window.scrollX, window.innerWidth - el.offsetWidth - 12)}px`
+        el.style.top = `${r.bottom + window.scrollY + 6}px`
+      })
+      n.addEventListener('mouseleave', hide)
+    })
+  }
+  document.addEventListener('astro:page-load', initLabTip)
+</script>
+
+<style is:global>
+  .lab-tip {
+    position: absolute;
+    z-index: 100;
+    padding: 0.25rem 0.5rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 0.25rem;
+    font-family: var(--sans);
+    font-size: 0.75rem;
+    color: var(--text-primary);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+</style>
+
+<style>
+  .lab-title {
+    margin: 0 0 0.5rem;
+    font-family: var(--head);
+    font-size: var(--font-size-m);
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+  .lab-title em {
+    font-family: var(--sans);
+    font-style: normal;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+  }
+  .lab-note {
+    margin: 0 0 2.5rem;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+  }
+  .lab {
+    margin-bottom: 3.5rem;
+  }
+  .lab h2 {
+    margin: 0 0 0.25rem;
+    font-family: var(--head);
+    font-size: 0.9375rem;
+  }
+  .lab > p {
+    margin: 0 0 1.25rem;
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+  .yr,
+  .sum {
+    font-size: 0.6875rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .sum {
+    text-align: right;
+  }
+  .future {
+    visibility: hidden;
+  }
+
+  /* 책 한 권 */
+  .bk,
+  .bk-flat,
+  .bk-lay {
+    display: block;
+    flex: none;
+    background: var(--text-primary);
+    opacity: var(--tone);
+    border-radius: 1px;
+    cursor: default;
+    transition: opacity 0.12s ease-out;
+  }
+  .bk.rv,
+  .bk-flat.rv,
+  .bk-lay.rv {
+    background: var(--accent);
+    opacity: 0.9;
+  }
+  .bk:hover,
+  .bk-flat:hover,
+  .bk-lay:hover {
+    opacity: 1;
+  }
+
+  /* 가 */
+  .va {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .va-row {
+    display: grid;
+    grid-template-columns: 2.5rem repeat(12, minmax(0, 1fr)) 1.75rem;
+    gap: 4px;
+    align-items: end;
+  }
+  .va-head span {
+    font-size: 0.625rem;
+    text-align: center;
+    color: var(--text-tertiary);
+  }
+  .va-row .yr {
+    align-self: center;
+  }
+  .va-cell {
+    height: 2.25rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 1px;
+    padding-bottom: 2px;
+    box-shadow: inset 0 -1px 0 var(--border);
+  }
+
+  /* 나 */
+  .vb {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .vb-row {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) 1.75rem;
+    align-items: end;
+  }
+  .vb-months {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 6px;
+    align-items: end;
+    padding-bottom: 2px;
+    box-shadow: inset 0 -1px 0 var(--border);
+  }
+  .vb-cell {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 1px;
+    min-height: 4px;
+  }
+  .bk-flat {
+    height: 5px;
+  }
+  .vb-foot span {
+    font-size: 0.625rem;
+    text-align: center;
+    color: var(--text-tertiary);
+  }
+
+  /* 다 */
+  .vc {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .vc-row {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) 1.75rem;
+    align-items: end;
+  }
+  .vc-shelf {
+    height: 2.5rem;
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    padding-bottom: 2px;
+    box-shadow: inset 0 -1px 0 var(--border);
+    overflow: hidden;
+  }
+  .vc-shelf .gap {
+    margin-left: 5px;
+  }
+
+  /* 라 */
+  .vd {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .vd-row {
+    display: grid;
+    grid-template-columns: 2.5rem repeat(12, minmax(0, 1fr)) 1.75rem;
+    gap: 4px;
+    align-items: center;
+  }
+  .vd-head span {
+    font-size: 0.625rem;
+    text-align: center;
+    color: var(--text-tertiary);
+  }
+  .vd-cell {
+    width: 100%;
+    max-width: 1.75rem;
+    justify-self: center;
+    fill: var(--text-primary);
+    stroke: var(--bg);
+    stroke-width: 1;
+    stroke-linejoin: round;
+  }
+  .vd-cell[data-level='0'] {
+    fill: none;
+    stroke: none;
+  }
+  .vd-cell[data-level='1'] {
+    fill-opacity: 0.16;
+  }
+  .vd-cell[data-level='2'] {
+    fill-opacity: 0.3;
+  }
+  .vd-cell[data-level='3'] {
+    fill-opacity: 0.48;
+  }
+  .vd-cell[data-level='4'] {
+    fill-opacity: 0.66;
+  }
+  .vd-cell[data-level='5'] {
+    fill-opacity: 0.85;
+  }
+  .vd-cell .fold {
+    fill: none;
+  }
+
+  /* 마 */
+  .ve {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .ve-row {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) 1.75rem;
+    align-items: center;
+  }
+  .ve-shelf {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    height: 0.875rem;
+  }
+  .bk-lay {
+    height: 100%;
+  }
+  .ve-shelf .gap {
+    margin-left: 5px;
+  }
+</style>
