@@ -16,7 +16,7 @@ const dated = posts.map((post, i) => {
   const iso = isoDate(post.data.pubDate)
   const [y, m, d] = iso.split('-')
   const prevYear = i > 0 ? isoDate(posts[i - 1].data.pubDate).slice(0, 4) : ''
-  return { post, iso, year: y, yearStart: y !== prevYear, short: `${Number(m)}.${d}` }
+  return { post, iso, year: y, yearStart: y !== prevYear, short: `${m}.${d}` }
 })
 const leads = dated.slice(0, lead)
 const tails = dated.slice(lead)

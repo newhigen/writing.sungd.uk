@@ -1,7 +1,6 @@
 ---
 import '@/styles/global.css'
 import type { PostLayoutProps } from '@/types'
-import FormattedDate from '@/components/widgets/FormattedDate.astro'
 import FootnoteScroll from '@/components/widgets/FootnoteScroll.astro'
 import BaseHead from '@/components/layout/BaseHead.astro'
 import DrawerFrame from '@/components/layout/DrawerFrame.astro'
@@ -37,7 +36,7 @@ const ogImage = `/open-graph/${postSlug}.png`
         {themeConfig.post.toc && <TableOfContents toc={toc} />}
         <div class="title">
           <div class="date">
-            <FormattedDate date={pubDate} context="post" />
+            <time datetime={pubDate.toISOString()}>{pubDate.toISOString().slice(0, 10).replaceAll('-', '.')}</time>
           </div>
           <h1><KindTitle title={title} review={category === '책'} /></h1>
         </div>

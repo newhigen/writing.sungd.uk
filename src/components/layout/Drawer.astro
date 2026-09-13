@@ -71,15 +71,13 @@ const items = [
     color: var(--accent);
   }
 
-  .drawer-links a.on::after {
-    content: ' ⟵';
-    font-size: 0.625rem;
-    color: var(--text-secondary);
-  }
-
   .drawer :global(.theme-toggle) {
     padding: 0;
     margin-top: 1rem;
+  }
+
+  .drawer :global(.theme-toggle svg) {
+    margin-left: -1px;
   }
 
   @media (max-width: 640px) {
