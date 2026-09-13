@@ -1,0 +1,117 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import { render } from 'astro:content'
+import { kindOf, isoDate } from '@/utils/home'
+
+interface Props {
+  posts: CollectionEntry<'posts'>[]
+  tail: number
+}
+
+const { posts, tail } = Astro.props
+const latest = posts[0]
+const { Content } = await render(latest)
+const tails = posts.slice(1, 1 + tail)
+---
+
+<section class="full">
+  <article class="latest prose">
+    <p class="meta"><span>{kindOf(latest)}</span><span>{isoDate(latest.data.pubDate)}</span></p>
+    <h1 class="title"><a href={`/${latest.id}/`}>{latest.data.title}</a></h1>
+    <div class="content">
+      <Content />
+    </div>
+  </article>
+  <h2 class="tail-head">이전 글</h2>
+  <ul class="tail">
+    {
+      tails.map((p) => (
+        <li>
+          <a href={`/${p.id}/`}>
+            <span class="k">{kindOf(p)}</span>
+            <span class="t">{p.data.title}</span>
+            <span class="d">{isoDate(p.data.pubDate)}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .full {
+    margin-top: 1.5rem;
+  }
+
+  .latest.prose {
+    margin-bottom: 3rem;
+  }
+
+  .latest .meta {
+    margin: 0 0 0.3rem;
+    display: flex;
+    gap: 0.7rem;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .latest .title {
+    margin: 0 0 1rem;
+    font-size: 1.625rem;
+    line-height: 1.3;
+  }
+
+  .latest .title a {
+    font-size: inherit;
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .tail-head {
+    margin: 0 0 0.5rem;
+    font-size: var(--font-size-m);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .tail {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .tail a {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    padding: 0.28rem 0;
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .tail .k {
+    flex: none;
+    width: 2.1rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  .tail .t {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tail a:hover .t {
+    box-shadow: 0 1px 0 var(--text-tertiary);
+  }
+
+  .tail .d {
+    flex: none;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+</style>

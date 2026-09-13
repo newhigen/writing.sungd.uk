@@ -1,0 +1,132 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import type { Book } from '@/utils/books'
+import { isoDate, normalizeTitle } from '@/utils/home'
+
+interface Props {
+  essays: CollectionEntry<'posts'>[]
+  reviews: CollectionEntry<'posts'>[]
+  books: Book[]
+  limit: number
+}
+
+const { essays, reviews, books, limit } = Astro.props
+
+const bookByTitle = new Map(books.map((b) => [normalizeTitle(b.title), b]))
+const original = (title: string) => bookByTitle.get(normalizeTitle(title))?.englishTitle ?? ''
+---
+
+<section class="study">
+  <div class="col">
+    <h2 class="head"><span>글</span><em>{essays.length}편</em></h2>
+    <ul class="list">
+      {
+        essays.slice(0, limit).map((p) => (
+          <li>
+            <a href={`/${p.id}/`}>
+              <span class="t">{p.data.title}</span>
+              <span class="d">{isoDate(p.data.pubDate)}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="rest">{essays.length - limit}편 더 ›</p>
+  </div>
+  <div class="col">
+    <h2 class="head"><span>서평</span><em>{reviews.length}편</em></h2>
+    <ul class="list">
+      {
+        reviews.slice(0, limit).map((p) => (
+          <li>
+            <a href={`/${p.id}/`}>
+              <span class="t">
+                {p.data.title}
+                {original(p.data.title) && <small>{original(p.data.title)}</small>}
+              </span>
+              <span class="d">{isoDate(p.data.pubDate)}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="rest">{reviews.length - limit}편 더 ›</p>
+  </div>
+</section>
+
+<style>
+  .study {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem 2.5rem;
+    margin-top: 1.5rem;
+  }
+
+  @media (max-width: 760px) {
+    .study {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .head {
+    margin: 0 0 0.5rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: var(--font-size-m);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .head em {
+    margin-left: auto;
+    font-style: normal;
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-regular);
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .list a {
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
+    padding: 0.35rem 0;
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .list .t {
+    flex: 1;
+    min-width: 0;
+    line-height: 1.45;
+  }
+
+  .list .t small {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+  }
+
+  .list a:hover .t {
+    box-shadow: 0 1px 0 var(--text-tertiary);
+  }
+
+  .list .d {
+    flex: none;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rest {
+    margin: 0.4rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+  }
+</style>

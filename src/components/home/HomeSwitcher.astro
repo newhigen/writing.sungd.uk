@@ -1,0 +1,115 @@
+---
+// 첫 화면 시안 스위처(임시). 고르면 지운다.
+const items = [
+  ['0', '서랍'],
+  ['1', '일기'],
+  ['2', '문장'],
+  ['3', '전문'],
+  ['4', '서재']
+]
+---
+
+<div class="h-switch" aria-label="첫 화면 시안">
+  {
+    items.map(([key, label]) => (
+      <button type="button" data-h={key}>
+        {label}
+      </button>
+    ))
+  }
+</div>
+
+<script is:inline>
+  ;(function () {
+    var html = document.documentElement
+    var q = new URLSearchParams(location.search).get('h')
+    var v = q
+    if (!v) {
+      try {
+        v = localStorage.getItem('sd-h')
+      } catch (e) {}
+    }
+    html.dataset.h = v || '0'
+    function paint() {
+      document.querySelectorAll('.h-switch button').forEach(function (b) {
+        b.classList.toggle('on', b.dataset.h === html.dataset.h)
+      })
+    }
+    function bind() {
+      paint()
+      document.querySelectorAll('.h-switch button').forEach(function (b) {
+        if (b.dataset.bound) return
+        b.dataset.bound = '1'
+        b.addEventListener('click', function () {
+          html.dataset.h = b.dataset.h
+          try {
+            localStorage.setItem('sd-h', b.dataset.h)
+          } catch (e) {}
+          paint()
+        })
+      })
+    }
+    bind()
+    document.addEventListener('astro:page-load', bind)
+  })()
+</script>
+
+<style is:global>
+  .h-switch {
+    position: fixed;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    z-index: 200;
+    display: flex;
+    gap: 0.15rem;
+    padding: 0.3rem 0.4rem;
+    border-radius: 999px;
+    background: rgba(20, 20, 22, 0.86);
+    backdrop-filter: blur(4px);
+  }
+
+  .h-switch button {
+    font: inherit;
+    font-size: 0.72rem;
+    color: #aaa;
+    background: none;
+    border: 0;
+    border-radius: 999px;
+    padding: 0.15rem 0.55rem;
+    cursor: pointer;
+  }
+
+  .h-switch button.on {
+    background: #fff;
+    color: #111;
+  }
+
+  /* 무엇을 보여줄지 — 기본은 서랍 */
+  .drawers {
+    flex-direction: column;
+    gap: 2.125rem;
+    margin-top: 1.5rem;
+    margin-bottom: 3rem;
+  }
+  html [data-home] {
+    display: none;
+  }
+  html[data-h='0'] .drawers,
+  html:not([data-h]) .drawers {
+    display: flex;
+  }
+  html[data-h='0'] [data-home~='0'],
+  html[data-h='1'] [data-home~='1'],
+  html[data-h='2'] [data-home~='2'],
+  html[data-h='3'] [data-home~='3'],
+  html[data-h='4'] [data-home~='4'] {
+    display: block;
+  }
+  html:not([data-h]) [data-home~='0'] {
+    display: block;
+  }
+  html[data-h='3'] .about,
+  html[data-h='2'] .about {
+    display: none;
+  }
+</style>

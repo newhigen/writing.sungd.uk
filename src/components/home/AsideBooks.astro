@@ -1,0 +1,71 @@
+---
+import type { Book } from '@/utils/books'
+
+interface Props {
+  books: Book[]
+  limit: number
+}
+
+const { books, limit } = Astro.props
+const year = Math.max(...books.map((b) => b.year))
+const thisYear = books.filter((b) => b.year === year)
+---
+
+<section class="aside-books">
+  <h2 class="head"><a href="/books">{year}년에 읽은 책</a><em>{thisYear.length}권</em></h2>
+  <ul>
+    {thisYear.slice(0, limit).map((b) => <li>{b.title}</li>)}
+  </ul>
+  {
+    thisYear.length > limit && (
+      <p class="rest">
+        {thisYear.length - limit}권 더 · 모두 {books.length}권
+      </p>
+    )
+  }
+</section>
+
+<style>
+  .head {
+    margin: 0 0 0.4rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: var(--font-weight-bold);
+  }
+
+  .head a {
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .head em {
+    margin-left: auto;
+    font-style: normal;
+    font-size: 0.7rem;
+    font-weight: var(--font-weight-regular);
+    color: var(--text-secondary);
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.8125rem;
+    line-height: 1.75;
+    color: var(--text-secondary);
+  }
+
+  li {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .rest {
+    margin: 0.3rem 0 0;
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+  }
+</style>
