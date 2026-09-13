@@ -31,7 +31,6 @@ const ogImage = `/open-graph/${postSlug}.png`
     slot="head"
   />
   <DrawerFrame active="글">
-    {themeConfig.post.toc && <PostToc toc={toc ?? []} placement="side" slot="aside" />}
     <div class="post-container">
       <div class="prose">
         {themeConfig.post.toc && <PostToc toc={toc ?? []} placement="margin" />}

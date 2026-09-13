@@ -91,24 +91,15 @@
   border-spacing: 0;
   margin: 1.75em 0;
   font-size: var(--font-size-m);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
 }
 
 /* Table cells */
 .prose th,
 .prose td {
   border: none;
-  border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  padding: 0.5em 1em;
+  padding: 0.55em 1em 0.55em 0;
   text-align: left;
-}
-
-.prose th:last-child,
-.prose td:last-child {
-  border-right: none;
 }
 
 .prose tr:last-child td {
@@ -116,8 +107,9 @@
 }
 
 .prose th {
-  background: var(--astro-code-background);
-  font-weight: var(--font-weight-bold);
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-regular);
+  color: var(--text-secondary);
 }
 
 /* Images */
@@ -206,9 +198,8 @@
 
 /* Blockquotes */
 .prose blockquote {
-  border-left: 2px solid var(--border);
-  margin: 0 0 0.75em 0.125em;
-  padding: 0 0 0 1.375em;
+  margin: 0 0 0.75em;
+  padding: 0;
   text-align: left;
 }
 
@@ -493,7 +484,7 @@
 /* Footnotes */
 .prose .footnotes {
   margin-top: 4rem;
-  padding-top: 2.5rem;
+  padding-top: 1.75rem;
   position: relative;
 }
 
@@ -505,31 +496,23 @@
   margin: 0;
 }
 
-.prose .footnotes::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4rem;
-  height: 1px;
-  background-color: var(--border);
-}
-
 .prose .footnotes::after {
   content: '참조';
   position: absolute;
-  top: 0.75rem;
+  top: 0;
   left: 0;
-  font-size: 1rem;
-  color: var(--text-tertiary);
-  opacity: 0.5;
-  letter-spacing: var(--spacing-s);
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
 }
 
-@media (max-width: 768px) {
-  .prose .footnotes::after {
-    font-size: 0.875rem;
-  }
+.prose .footnotes li,
+.prose .footnotes li * {
+  font-size: 0.8125rem;
+}
+
+.prose .footnotes a:not([data-footnote-backref]) {
+  color: var(--text-secondary);
+  text-decoration-color: var(--text-tertiary);
 }
 
 .prose cite {
@@ -538,6 +521,7 @@
 
 /* Footnote references */
 .prose [data-footnote-backref] {
+  display: none;
   position: relative;
   font-family: var(--mono);
   font-size: var(--font-size-l);
@@ -560,7 +544,7 @@
 
 .prose [data-footnote-ref],
 .prose [data-footnote-backref] {
-  color: var(--text-secondary);
+  color: var(--accent);
   opacity: 0.875;
   text-decoration: none;
   transition: color 0.2s ease-out;

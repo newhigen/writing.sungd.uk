@@ -4,7 +4,7 @@ import '@/styles/global.css'
 import BaseHead from '@/components/layout/BaseHead.astro'
 import DrawerFrame from '@/components/layout/DrawerFrame.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
-import { loadBooks, getHeatmapData, intensityLevel, type Book } from '@/utils/books'
+import { loadBooks, getHeatmapData, type Book } from '@/utils/books'
 import { getCollection } from 'astro:content'
 
 const books = loadBooks()
@@ -13,142 +13,133 @@ const now = new Date()
 const currentYear = now.getFullYear()
 const currentMonth = now.getMonth() + 1
 const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+const oldToNew = [...years].reverse()
 
 const posts = await getCollection('posts', ({ id }) => !id.startsWith('_'))
 const norm = (t: string) => t.toLowerCase().replace(/[^a-z0-9가-힣ㄱ-ㅎㅏ-ㅣ]/g, '')
 const reviewed = new Set(posts.map((p) => norm(p.data.title)))
 const hasReview = (b: Book) => reviewed.has(norm(b.title))
 
-// 제목으로 정해지는 흔들림: 같은 책은 늘 같은 높이·굵기·농도
+// 제목으로 정해지는 흔들림: 같은 책은 늘 같은 색·높이·기울기
 const hash = (s: string) => [...s].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7)
-const spine = (b: Book) => {
-  const h = hash(b.title)
-  return {
-    height: 72 + (h % 29), // 72~100 %
-    width: 3 + Math.min(4, Math.floor(b.title.length / 5)), // 제목이 길면 두꺼운 책
-    tone: 0.3 + ((h >>> 5) % 5) * 0.1, // 0.3~0.7
-    review: hasReview(b)
-  }
-}
+const pick = (b: Book, salt: number, mod: number) => (hash(b.title) >>> salt) % mod
+const cover = (b: Book) => `var(--k${pick(b, 0, 8)})`
 
 const cellOf = (year: number, month: number) => cells.get(`${year}-${String(month).padStart(2, '0')}`)
+const countOf = (year: number, month: number) => cellOf(year, month)?.count ?? 0
 const isFuture = (year: number, month: number) => year > currentYear || (year === currentYear && month > currentMonth)
 const yearBooks = (year: number) =>
   books.filter((b) => b.year === year).sort((a, b) => a.month - b.month || a.title.localeCompare(b.title))
-const maxCount = Math.max(...[...cells.values()].map((c) => c.count))
 const tip = (b: Book) => `${b.year}년 ${b.month}월 · ${b.title}`
+const monthTip = (year: number, month: number) => {
+  const c = cellOf(year, month)
+  return c ? `${year}년 ${month}월 · ${c.books.map((b) => b.title).join(', ')}` : undefined
+}
+
+// 라 · 나무
+const season = (m: number) =>
+  m >= 3 && m <= 5 ? 'spring' : m >= 6 && m <= 8 ? 'summer' : m >= 9 && m <= 11 ? 'fall' : 'winter'
+const trees = oldToNew.map((year) => {
+  const list = yearBooks(year)
+  const n = list.length
+  const R = 7 + Math.sqrt(n) * 5.4
+  const trunk = 16 + Math.sqrt(n) * 4
+  return { year, list, n, R, trunk }
+})
+const treeH = Math.ceil(Math.max(...trees.map((t) => t.trunk + t.R * 1.85 + 8)))
+
+// 마 · 책벌레
+const wx = (m: number) => 14 + (m - 1) * 38
+const wr = (count: number) => 6 + Math.min(count, 7) * 1.9
 ---
 
 <BaseLayout title="히트맵 시안" description="독서 히트맵 시안" type="page">
   <BaseHead title="히트맵 시안" description="독서 히트맵 시안" slot="head" />
   <DrawerFrame active="독서 기록">
-    <h1 class="lab-title">독서 히트맵 시안 <em>{books.length}권 · 가장 많이 읽은 달 {maxCount}권</em></h1>
-    <p class="lab-note">크게 그린 판이다. 책 하나하나에 올리면 제목이 뜬다. 서평을 쓴 책은 강조색.</p>
+    <h1 class="lab-title">책 모양 히트맵 시안 <em>{books.length}권</em></h1>
+    <p class="lab-note">책·잎·도장·마디에 올리면 제목이 뜬다.</p>
 
-    <!-- 가 · 책등 칸 : 칸은 그대로, 칸 안에 그달 읽은 권수만큼 책등이 선다 -->
+    <!-- 가 · 책탑 -->
     <section class="lab">
-      <h2>가 · 책등 칸</h2>
-      <p>달 칸 모양은 그대로 두고, 칸 안에 읽은 권수만큼 책이 선다. 칸이 찰수록 많이 읽은 달.</p>
-      <div class="va">
-        <div class="va-row va-head">
-          <span></span>
-          {months.map((m) => <span>{m}</span>)}
-          <span></span>
-        </div>
+      <h2>가 · 책탑</h2>
+      <p>달마다 읽은 책을 책상 위에 쌓는다. 그해 가장 높은 탑 위엔 머그컵.</p>
+      <div class="ta">
         {
-          years.map((year) => (
-            <div class="va-row">
-              <span class="yr">{year}</span>
-              {months.map((m) => {
-                const c = cellOf(year, m)
-                return (
-                  <span class:list={['va-cell', { future: isFuture(year, m) }]}>
-                    {c?.books.map((b) => {
-                      const s = spine(b)
-                      return (
+          years.map((year) => {
+            const counts = months.map((m) => countOf(year, m))
+            const top = counts.indexOf(Math.max(...counts)) + 1
+            return (
+              <div class="ta-row">
+                <span class="yr">{year}</span>
+                <div class="ta-desk">
+                  {months.map((m) => (
+                    <span class:list={['ta-cell', { future: isFuture(year, m) }]}>
+                      {cellOf(year, m)?.books.map((b) => (
                         <i
-                          class:list={['bk', { rv: s.review }]}
-                          style={`height:${s.height}%;width:${s.width}px;--tone:${s.tone}`}
+                          class:list={['ta-book', { rv: hasReview(b) }]}
+                          style={`--c:${cover(b)};width:${62 + pick(b, 2, 34)}%;transform:translateX(${pick(b, 5, 7) - 3}px) rotate(${pick(b, 8, 9) - 4}deg)`}
                           data-tip={tip(b)}
                         />
-                      )
-                    })}
-                  </span>
-                )
-              })}
-              <span class="sum">{yearBooks(year).length}</span>
-            </div>
-          ))
-        }
-      </div>
-    </section>
-
-    <!-- 나 · 책 더미 : 달마다 눕힌 책이 위로 쌓인다 -->
-    <section class="lab">
-      <h2>나 · 책 더미</h2>
-      <p>책을 눕혀 쌓는다. 더미 높이가 곧 권수라 막대그래프처럼 읽힌다.</p>
-      <div class="vb">
-        {
-          years.map((year) => (
-            <div class="vb-row">
-              <span class="yr">{year}</span>
-              <div class="vb-months">
-                {months.map((m) => {
-                  const c = cellOf(year, m)
-                  return (
-                    <span class:list={['vb-cell', { future: isFuture(year, m) }]}>
-                      {c?.books.map((b, i) => {
-                        const h = hash(b.title)
-                        const s = spine(b)
-                        return (
-                          <i
-                            class:list={['bk-flat', { rv: s.review }]}
-                            style={`width:${70 + (h % 26)}%;margin-left:${(h >>> 3) % 4}px;--tone:${s.tone}`}
-                            data-tip={tip(b)}
-                          />
-                        )
-                      })}
+                      ))}
+                      {m === top && counts[m - 1] > 1 && (
+                        <svg class="mug" viewBox="0 0 16 16" aria-hidden="true">
+                          <path class="steam" d="M6 1.5c-1 1.2 1 1.8 0 3M9 1.5c-1 1.2 1 1.8 0 3" />
+                          <path class="cup" d="M3 6.5h8v5.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
+                          <path class="handle" d="M11 8h1.2a1.6 1.6 0 0 1 0 3.2H11" />
+                        </svg>
+                      )}
                     </span>
-                  )
-                })}
+                  ))}
+                </div>
+                <span class="sum">{yearBooks(year).length}</span>
               </div>
-              <span class="sum">{yearBooks(year).length}</span>
-            </div>
-          ))
+            )
+          })
         }
-        <div class="vb-row vb-foot">
+        <div class="ta-row ta-months">
           <span></span>
-          <div class="vb-months">
-            {months.map((m) => <span>{m}</span>)}
+          <div class="ta-desk ta-desk-label">
+            {months.map((m) => <span>{m}월</span>)}
           </div>
           <span></span>
         </div>
       </div>
     </section>
 
-    <!-- 다 · 해마다 한 칸 책장 : 그해 읽은 책을 달 순서로 꽂는다 -->
+    <!-- 나 · 책장 -->
     <section class="lab">
-      <h2>다 · 해마다 한 칸 책장</h2>
-      <p>한 해가 책장 한 칸이다. 읽은 순서대로 꽂고 달이 바뀌는 자리에 틈을 둔다. 많이 읽은 해는 칸이 찬다.</p>
-      <div class="vc">
+      <h2>나 · 책장</h2>
+      <p>한 해가 책장 한 칸. 읽은 순서대로 꽂고 마지막 책은 비스듬히 기댄다. 올해 칸엔 화분. 서평 쓴 책엔 가름끈.</p>
+      <div class="tb">
         {
           years.map((year) => {
             const list = yearBooks(year)
             return (
-              <div class="vc-row">
+              <div class="tb-row">
                 <span class="yr">{year}</span>
-                <div class="vc-shelf">
-                  {list.map((b, i) => {
-                    const s = spine(b)
-                    const gap = i > 0 && list[i - 1].month !== b.month
-                    return (
-                      <i
-                        class:list={['bk', { rv: s.review, gap }]}
-                        style={`height:${s.height}%;width:${s.width + 2}px;--tone:${s.tone}`}
-                        data-tip={tip(b)}
-                      />
-                    )
-                  })}
+                <div class="tb-shelf">
+                  {list.map((b, i) => (
+                    <i
+                      class:list={[
+                        'tb-book',
+                        {
+                          rv: hasReview(b),
+                          gap: i > 0 && list[i - 1].month !== b.month,
+                          lean: i === list.length - 1 && list.length > 1
+                        }
+                      ]}
+                      style={`--c:${cover(b)};width:${5 + Math.min(4, Math.floor(b.title.length / 4))}px;height:${58 + pick(b, 3, 38)}%`}
+                      data-tip={tip(b)}
+                    />
+                  ))}
+                  {year === currentYear && (
+                    <svg class="plant" viewBox="0 0 24 32" aria-hidden="true">
+                      <path class="leaf" d="M12 17C7 16 4 12 5 7c4 1 7 5 7 10Z" />
+                      <path class="leaf" d="M12 17c5-1 8-6 7-11-4 1-7 6-7 11Z" />
+                      <path class="leaf" d="M12 18c-1-5 0-10 0-15 2 4 2 10 0 15Z" />
+                      <path class="pot" d="M6 19h12l-1.6 11a1.5 1.5 0 0 1-1.5 1.2H9.1a1.5 1.5 0 0 1-1.5-1.2Z" />
+                    </svg>
+                  )}
                 </div>
                 <span class="sum">{list.length}</span>
               </div>
@@ -158,75 +149,165 @@ const tip = (b: Book) => `${b.year}년 ${b.month}월 · ${b.title}`
       </div>
     </section>
 
-    <!-- 라 · 책 아이콘 농도 : 지금 칸을 펼친 책 모양으로만 바꾼다 -->
+    <!-- 다 · 대출 카드 -->
     <section class="lab">
-      <h2>라 · 펼친 책 칸</h2>
-      <p>지금 히트맵에서 네모만 펼친 책 모양으로 바꾼다. 농도로 권수를 낸다. 차림표에 두는 작은 판에도 쓸 수 있다.</p>
-      <div class="vd">
-        <div class="vd-row vd-head">
+      <h2>다 · 도서 대출 카드</h2>
+      <p>도서관 책 뒤에 꽂힌 대출 카드. 읽은 달마다 도장이 찍히고, 많이 읽은 달은 도장이 크고 붉다.</p>
+      <div class="tc-card">
+        <div class="tc-head">
+          <span class="tc-name">독서 대출 카드</span>
+          <span class="tc-no">No. {String(books.length).padStart(4, '0')}</span>
+        </div>
+        <div class="tc-grid">
+          <span class="tc-h">해</span>
+          {months.map((m) => <span class="tc-h">{m}</span>)}
+          <span class="tc-h">계</span>
+          {
+            years.map((year) => (
+              <>
+                <span class="tc-yr">{year}</span>
+                {months.map((m) => {
+                  const count = countOf(year, m)
+                  const b = cellOf(year, m)?.books[0]
+                  return (
+                    <span class="tc-cell">
+                      {count > 0 && b && (
+                        <span
+                          class:list={['stamp', { hot: count >= 4 }]}
+                          style={`--s:${22 + Math.min(count, 6) * 2}px;transform:rotate(${pick(b, 4, 31) - 15}deg)`}
+                          data-tip={monthTip(year, m)}
+                        >
+                          {count}
+                        </span>
+                      )}
+                    </span>
+                  )
+                })}
+                <span class="tc-sum">{yearBooks(year).length}</span>
+              </>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- 라 · 독서 나무 -->
+    <section class="lab">
+      <h2>라 · 독서 나무</h2>
+      <p>해마다 나무 한 그루. 잎 하나가 책 한 권이고, 잎 색은 읽은 계절. 많이 읽은 해일수록 크게 자란다.</p>
+      <div class="td">
+        {
+          trees.map((t) => {
+            const cy = treeH - t.trunk - t.R * 0.85
+            return (
+              <figure class="td-tree">
+                <svg viewBox={`0 0 100 ${treeH}`} aria-hidden="true">
+                  <ellipse class="ground" cx="50" cy={treeH - 1.5} rx={t.R * 0.7 + 6} ry="2" />
+                  <path
+                    class="trunk"
+                    d={`M50 ${treeH - 2}V${cy}M50 ${treeH - t.trunk * 0.6}L${50 - t.R * 0.38} ${cy + t.R * 0.2}M50 ${treeH - t.trunk * 0.8}L${50 + t.R * 0.4} ${cy + t.R * 0.1}`}
+                    style={`stroke-width:${2 + Math.sqrt(t.n) * 0.5}`}
+                  />
+                  {t.list.map((b, i) => {
+                    const rr = t.R * 0.92 * Math.sqrt((i + 0.5) / t.n)
+                    const th = i * 2.39996
+                    const x = (50 + rr * Math.cos(th)).toFixed(1)
+                    const y = (cy + rr * Math.sin(th)).toFixed(1)
+                    return (
+                      <ellipse
+                        class:list={['leaf', season(b.month)]}
+                        cx={x}
+                        cy={y}
+                        rx="5.2"
+                        ry="3.1"
+                        transform={`rotate(${Math.round(((th * 180) / Math.PI + 45) % 360)} ${x} ${y})`}
+                        data-tip={tip(b)}
+                      />
+                    )
+                  })}
+                </svg>
+                <figcaption>
+                  {t.year} <em>{t.n}</em>
+                </figcaption>
+              </figure>
+            )
+          })
+        }
+      </div>
+      <div class="td-legend" aria-hidden="true">
+        <span><i class="spring"></i>봄</span>
+        <span><i class="summer"></i>여름</span>
+        <span><i class="fall"></i>가을</span>
+        <span><i class="winter"></i>겨울</span>
+      </div>
+    </section>
+
+    <!-- 마 · 책벌레 -->
+    <section class="lab">
+      <h2>마 · 책벌레</h2>
+      <p>해마다 책벌레 한 마리가 1월에서 12월로 기어간다. 마디 굵기가 그달 권수. 올해 벌레는 다음 책을 향해 가는 중.</p>
+      <div class="te">
+        {
+          years.map((year) => {
+            const read = months.filter((m) => countOf(year, m) > 0)
+            if (!read.length) return null
+            const first = read[0]
+            const last = read[read.length - 1]
+            const hx = wx(last) + wr(countOf(year, last)) + 8
+            const cy = 27
+            return (
+              <div class="te-row">
+                <span class="yr">{year}</span>
+                <svg viewBox="0 0 480 50" aria-hidden="true">
+                  <path class="te-body" d={`M${wx(first)} ${cy}H${wx(last)}`} />
+                  {read.map((m, i) => {
+                    const r = wr(countOf(year, m))
+                    const x = wx(m)
+                    return (
+                      <g class="te-part" data-tip={monthTip(year, m)}>
+                        <path class="te-feet" d={`M${x - 3} ${cy + r - 1}l-1.5 4M${x + 3} ${cy + r - 1}l1.5 4`} />
+                        <circle class:list={['te-seg', { alt: i % 2 === 1 }]} cx={x} cy={cy} r={r} />
+                        {r >= 11 && (
+                          <text class="te-n" x={x} y={cy + 3.5}>
+                            {countOf(year, m)}
+                          </text>
+                        )}
+                      </g>
+                    )
+                  })}
+                  <g>
+                    <path class="te-ant" d={`M${hx - 2} ${cy - 7}q-1 -6 -4 -10M${hx + 3} ${cy - 7}q2 -6 5 -9`} />
+                    <circle class="te-ant-dot" cx={hx - 6} cy={cy - 17} r="1.8" />
+                    <circle class="te-ant-dot" cx={hx + 8} cy={cy - 16} r="1.8" />
+                    <circle class="te-seg" cx={hx} cy={cy} r="9.5" />
+                    <circle class="te-eye" cx={hx + 3} cy={cy - 2.5} r="2.8" />
+                    <circle class="te-pupil" cx={hx + 3.8} cy={cy - 2.3} r="1.4" />
+                    <circle class="te-cheek" cx={hx + 5} cy={cy + 4} r="1.8" />
+                  </g>
+                  {year === currentYear && (
+                    <g class="te-next" transform={`translate(${hx + 20} ${cy - 5})`}>
+                      <path d="M6 2C4.5 1 2.5.7 0 .7v9c2.5 0 4.5.3 6 1.3 1.5-1 3.5-1.3 6-1.3v-9c-2.5 0-4.5.3-6 1.3Z" />
+                    </g>
+                  )}
+                </svg>
+                <span class="sum">{yearBooks(year).length}</span>
+              </div>
+            )
+          })
+        }
+        <div class="te-row te-months">
           <span></span>
-          {months.map((m) => <span>{m}</span>)}
+          <svg viewBox="0 0 480 12" aria-hidden="true">
+            {
+              months.map((m) => (
+                <text x={wx(m)} y="10">
+                  {m}
+                </text>
+              ))
+            }
+          </svg>
           <span></span>
         </div>
-        {
-          years.map((year) => (
-            <div class="vd-row">
-              <span class="yr">{year}</span>
-              {months.map((m) => {
-                const c = cellOf(year, m)
-                const count = c?.count ?? 0
-                return (
-                  <svg
-                    class:list={['vd-cell', { future: isFuture(year, m) }]}
-                    data-level={String(intensityLevel(count))}
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    data-tip={count ? `${year}년 ${m}월 · ${count}권` : undefined}
-                  >
-                    <path d="M12 6.5C10 5 7 4.5 3 4.5v14c4 0 7 .5 9 2 2-1.5 5-2 9-2v-14c-4 0-7 .5-9 2Z" />
-                    <path class="fold" d="M12 6.5v14" />
-                  </svg>
-                )
-              })}
-              <span class="sum">{yearBooks(year).length}</span>
-            </div>
-          ))
-        }
-      </div>
-    </section>
-
-    <!-- 마 · 달마다 쌓인 권수 : 열두 달 책꽂이, 해는 층으로 -->
-    <section class="lab">
-      <h2>마 · 열두 달 책꽂이</h2>
-      <p>세로가 달, 가로가 해. 해마다 같은 달끼리 비교된다. 책등에 해 대신 농도를 준다(최근일수록 진하게).</p>
-      <div class="ve">
-        {
-          months.map((m) => {
-            const list = books
-              .filter((b) => b.month === m)
-              .sort((a, b) => a.year - b.year || a.title.localeCompare(b.title))
-            return (
-              <div class="ve-row">
-                <span class="yr">{m}월</span>
-                <div class="ve-shelf">
-                  {list.map((b, i) => {
-                    const s = spine(b)
-                    const age = Math.min(4, currentYear - b.year)
-                    const gap = i > 0 && list[i - 1].year !== b.year
-                    return (
-                      <i
-                        class:list={['bk-lay', { rv: s.review, gap }]}
-                        style={`width:${s.width + 2}px;--tone:${0.85 - age * 0.15}`}
-                        data-tip={tip(b)}
-                      />
-                    )
-                  })}
-                </div>
-                <span class="sum">{list.length}</span>
-              </div>
-            )
-          })
-        }
       </div>
     </section>
   </DrawerFrame>
@@ -239,7 +320,7 @@ const tip = (b: Book) => `${b.year}년 ${b.month}월 · ${b.title}`
       el?.remove()
       el = null
     }
-    document.querySelectorAll<HTMLElement | SVGElement>('[data-tip]').forEach((n) => {
+    document.querySelectorAll<Element>('[data-tip]').forEach((n) => {
       n.addEventListener('mouseenter', () => {
         hide()
         el = document.createElement('div')
@@ -247,7 +328,7 @@ const tip = (b: Book) => `${b.year}년 ${b.month}월 · ${b.title}`
         el.textContent = n.getAttribute('data-tip')
         document.body.appendChild(el)
         const r = n.getBoundingClientRect()
-        el.style.left = `${Math.min(r.left + window.scrollX, window.innerWidth - el.offsetWidth - 12)}px`
+        el.style.left = `${Math.max(12, Math.min(r.left + window.scrollX, window.innerWidth - el.offsetWidth - 12))}px`
         el.style.top = `${r.bottom + window.scrollY + 6}px`
       })
       n.addEventListener('mouseleave', hide)
@@ -257,24 +338,62 @@ const tip = (b: Book) => `${b.year}년 ${b.month}월 · ${b.title}`
 </script>
 
 <style is:global>
+  :root,
+  html.light {
+    --k0: #2f6b66;
+    --k1: #b5573f;
+    --k2: #d4a13f;
+    --k3: #6b82a8;
+    --k4: #8b6f9f;
+    --k5: #7d8f57;
+    --k6: #cf8f8a;
+    --k7: #3e4a5e;
+    --wood: #b98b5e;
+    --paper: #fdfbf6;
+    --spring: #e9a3b4;
+    --summer: #5f9b62;
+    --fall: #dd8a3c;
+    --winter: #9db6cc;
+    --worm-a: #9cc07a;
+    --worm-b: #79a45e;
+  }
+  html.dark {
+    --k0: #5fa39c;
+    --k1: #cf7a62;
+    --k2: #dcb45c;
+    --k3: #8ea3c7;
+    --k4: #ab91bd;
+    --k5: #9fb27a;
+    --k6: #dea7a2;
+    --k7: #7d8aa3;
+    --wood: #8a6848;
+    --paper: #25221f;
+    --spring: #dc9aab;
+    --summer: #6fae72;
+    --fall: #d9914d;
+    --winter: #9ab3c8;
+    --worm-a: #86ac67;
+    --worm-b: #678f4f;
+  }
   .lab-tip {
     position: absolute;
     z-index: 100;
-    padding: 0.25rem 0.5rem;
+    max-width: 18rem;
+    padding: 0.3rem 0.55rem;
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 0.25rem;
     font-family: var(--sans);
     font-size: 0.75rem;
+    line-height: 1.5;
     color: var(--text-primary);
     pointer-events: none;
-    white-space: nowrap;
   }
 </style>
 
 <style>
   .lab-title {
-    margin: 0 0 0.5rem;
+    margin: 0 0 0.25rem;
     font-family: var(--head);
     font-size: var(--font-size-m);
     display: flex;
@@ -294,7 +413,7 @@ const tip = (b: Book) => `${b.year}년 ${b.month}월 · ${b.title}`
     color: var(--text-secondary);
   }
   .lab {
-    margin-bottom: 3.5rem;
+    margin-bottom: 3.75rem;
   }
   .lab h2 {
     margin: 0 0 0.25rem;
@@ -302,7 +421,7 @@ const tip = (b: Book) => `${b.year}년 ${b.month}월 · ${b.title}`
     font-size: 0.9375rem;
   }
   .lab > p {
-    margin: 0 0 1.25rem;
+    margin: 0 0 1.5rem;
     font-size: 0.8125rem;
     line-height: 1.7;
     color: var(--text-secondary);
@@ -319,189 +438,377 @@ const tip = (b: Book) => `${b.year}년 ${b.month}월 · ${b.title}`
   .future {
     visibility: hidden;
   }
-
-  /* 책 한 권 */
-  .bk,
-  .bk-flat,
-  .bk-lay {
-    display: block;
-    flex: none;
-    background: var(--text-primary);
-    opacity: var(--tone);
-    border-radius: 1px;
+  [data-tip] {
     cursor: default;
-    transition: opacity 0.12s ease-out;
-  }
-  .bk.rv,
-  .bk-flat.rv,
-  .bk-lay.rv {
-    background: var(--accent);
-    opacity: 0.9;
-  }
-  .bk:hover,
-  .bk-flat:hover,
-  .bk-lay:hover {
-    opacity: 1;
   }
 
-  /* 가 */
-  .va {
+  /* ── 가 · 책탑 ── */
+  .ta {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 1rem;
   }
-  .va-row {
-    display: grid;
-    grid-template-columns: 2.5rem repeat(12, minmax(0, 1fr)) 1.75rem;
-    gap: 4px;
-    align-items: end;
-  }
-  .va-head span {
-    font-size: 0.625rem;
-    text-align: center;
-    color: var(--text-tertiary);
-  }
-  .va-row .yr {
-    align-self: center;
-  }
-  .va-cell {
-    height: 2.25rem;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    gap: 1px;
-    padding-bottom: 2px;
-    box-shadow: inset 0 -1px 0 var(--border);
-  }
-
-  /* 나 */
-  .vb {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-  }
-  .vb-row {
+  .ta-row {
     display: grid;
     grid-template-columns: 2.5rem minmax(0, 1fr) 1.75rem;
     align-items: end;
   }
-  .vb-months {
+  .ta-desk {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: 6px;
+    gap: 5px;
     align-items: end;
-    padding-bottom: 2px;
-    box-shadow: inset 0 -1px 0 var(--border);
+    border-bottom: 3px solid var(--wood);
+    border-radius: 0 0 2px 2px;
   }
-  .vb-cell {
-    display: flex;
-    flex-direction: column-reverse;
-    gap: 1px;
-    min-height: 4px;
+  .ta-desk-label {
+    border: none;
+    margin-top: -0.5rem;
   }
-  .bk-flat {
-    height: 5px;
-  }
-  .vb-foot span {
-    font-size: 0.625rem;
+  .ta-desk-label span {
+    font-size: 0.5625rem;
     text-align: center;
     color: var(--text-tertiary);
   }
+  .ta-cell {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 1px;
+  }
+  .ta-book {
+    position: relative;
+    display: block;
+    height: 7px;
+    border-radius: 1.5px;
+    background: var(--c);
+    box-shadow: inset -3px 0 0 var(--paper);
+    transition: translate 0.15s ease-out;
+  }
+  .ta-book:hover {
+    translate: 0 -2px;
+  }
+  .ta-book.rv::after {
+    content: '';
+    position: absolute;
+    right: 28%;
+    top: 100%;
+    width: 2px;
+    height: 4px;
+    background: var(--accent);
+  }
+  .mug {
+    width: 13px;
+    height: 13px;
+    margin-bottom: 1px;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .mug .cup {
+    fill: var(--paper);
+    stroke: var(--text-secondary);
+    stroke-width: 1.2;
+  }
+  .mug .handle {
+    stroke: var(--text-secondary);
+    stroke-width: 1.2;
+  }
+  .mug .steam {
+    stroke: var(--text-tertiary);
+    stroke-width: 0.9;
+  }
 
-  /* 다 */
-  .vc {
+  /* ── 나 · 책장 ── */
+  .tb {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
   }
-  .vc-row {
+  .tb-row {
     display: grid;
     grid-template-columns: 2.5rem minmax(0, 1fr) 1.75rem;
     align-items: end;
   }
-  .vc-shelf {
-    height: 2.5rem;
+  .tb-shelf {
     display: flex;
     align-items: flex-end;
-    gap: 1px;
-    padding-bottom: 2px;
-    box-shadow: inset 0 -1px 0 var(--border);
-    overflow: hidden;
+    height: 3.75rem;
+    padding: 0 6px;
+    border: solid var(--wood);
+    border-width: 0 4px 5px;
+    background: color-mix(in srgb, var(--wood) 7%, transparent);
   }
-  .vc-shelf .gap {
-    margin-left: 5px;
+  .tb-book {
+    position: relative;
+    display: block;
+    flex: none;
+    margin-right: 1px;
+    border-radius: 1px 1px 0 0;
+    background:
+      linear-gradient(
+        to bottom,
+        transparent 12%,
+        rgba(255, 255, 255, 0.38) 12% 16%,
+        transparent 16% 80%,
+        rgba(0, 0, 0, 0.14) 80% 84%,
+        transparent 84%
+      ),
+      var(--c);
+    transition: translate 0.15s ease-out;
+  }
+  .tb-book:hover {
+    translate: 0 -3px;
+  }
+  .tb-book.gap {
+    margin-left: 3px;
+  }
+  .tb-book.lean {
+    margin-left: 2px;
+    margin-right: 12px;
+    transform: rotate(12deg);
+    transform-origin: bottom left;
+  }
+  .tb-book.rv::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: -5px;
+    width: 2px;
+    height: 7px;
+    background: var(--accent);
+    border-radius: 1px;
+  }
+  .plant {
+    width: 20px;
+    height: 27px;
+    margin-left: auto;
+    flex: none;
+  }
+  .plant .leaf {
+    fill: var(--summer);
+  }
+  .plant .pot {
+    fill: var(--k1);
   }
 
-  /* 라 */
-  .vd {
+  /* ── 다 · 대출 카드 ── */
+  .tc-card {
+    padding: 1rem 1.25rem 1.1rem;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+  }
+  .tc-head {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
   }
-  .vd-row {
-    display: grid;
-    grid-template-columns: 2.5rem repeat(12, minmax(0, 1fr)) 1.75rem;
-    gap: 4px;
-    align-items: center;
+  .tc-name {
+    font-family: var(--head);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
   }
-  .vd-head span {
-    font-size: 0.625rem;
-    text-align: center;
+  .tc-no {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
     color: var(--text-tertiary);
   }
-  .vd-cell {
-    width: 100%;
-    max-width: 1.75rem;
-    justify-self: center;
-    fill: var(--text-primary);
-    stroke: var(--bg);
-    stroke-width: 1;
-    stroke-linejoin: round;
+  .tc-grid {
+    display: grid;
+    grid-template-columns: 2.75rem repeat(12, minmax(0, 1fr)) 2rem;
   }
-  .vd-cell[data-level='0'] {
-    fill: none;
-    stroke: none;
+  .tc-grid > span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid color-mix(in srgb, var(--k3) 22%, transparent);
+    font-variant-numeric: tabular-nums;
   }
-  .vd-cell[data-level='1'] {
-    fill-opacity: 0.16;
+  .tc-h {
+    height: 1.5rem;
+    font-size: 0.625rem;
+    color: var(--text-tertiary);
   }
-  .vd-cell[data-level='2'] {
-    fill-opacity: 0.3;
+  .tc-yr,
+  .tc-sum {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--text-secondary);
   }
-  .vd-cell[data-level='3'] {
-    fill-opacity: 0.48;
+  .tc-grid > .tc-yr,
+  .tc-grid > .tc-h:first-child {
+    justify-content: flex-start;
+    border-right: 1px solid color-mix(in srgb, var(--k1) 45%, transparent);
   }
-  .vd-cell[data-level='4'] {
-    fill-opacity: 0.66;
+  .tc-cell {
+    height: 2.5rem;
   }
-  .vd-cell[data-level='5'] {
-    fill-opacity: 0.85;
+  .stamp {
+    display: grid;
+    place-items: center;
+    width: var(--s);
+    height: var(--s);
+    flex: none;
+    border: 1.5px solid currentColor;
+    border-radius: 50%;
+    box-shadow:
+      inset 0 0 0 2px var(--paper),
+      inset 0 0 0 3px currentColor;
+    color: color-mix(in srgb, var(--accent) 85%, transparent);
+    font-family: var(--head);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    mask-image: radial-gradient(circle at 35% 30%, #000 55%, rgba(0, 0, 0, 0.7));
   }
-  .vd-cell .fold {
-    fill: none;
+  .stamp.hot {
+    color: color-mix(in srgb, var(--k1) 90%, transparent);
   }
 
-  /* 마 */
-  .ve {
+  /* ── 라 · 독서 나무 ── */
+  .td {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.25rem;
+  }
+  .td-tree {
+    flex: 1;
+    margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    align-items: center;
   }
-  .ve-row {
+  .td-tree svg {
+    width: 100%;
+    max-width: 7rem;
+    overflow: visible;
+  }
+  .td-tree figcaption {
+    margin-top: 0.25rem;
+    font-size: 0.6875rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .td-tree figcaption em {
+    font-style: normal;
+    color: var(--text-tertiary);
+  }
+  .ground {
+    fill: var(--border);
+  }
+  .trunk {
+    fill: none;
+    stroke: var(--wood);
+    stroke-linecap: round;
+  }
+  .leaf {
+    transition: opacity 0.15s ease-out;
+  }
+  .leaf:hover {
+    opacity: 0.6;
+  }
+  .spring {
+    fill: var(--spring);
+    background: var(--spring);
+  }
+  .summer {
+    fill: var(--summer);
+    background: var(--summer);
+  }
+  .fall {
+    fill: var(--fall);
+    background: var(--fall);
+  }
+  .winter {
+    fill: var(--winter);
+    background: var(--winter);
+  }
+  .td-legend {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    font-size: 0.6875rem;
+    color: var(--text-tertiary);
+  }
+  .td-legend i {
+    display: inline-block;
+    width: 9px;
+    height: 6px;
+    margin-right: 0.3rem;
+    border-radius: 50%;
+    transform: rotate(-30deg);
+  }
+
+  /* ── 마 · 책벌레 ── */
+  .te {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .te-row {
     display: grid;
     grid-template-columns: 2.5rem minmax(0, 1fr) 1.75rem;
     align-items: center;
   }
-  .ve-shelf {
-    display: flex;
-    align-items: center;
-    gap: 1px;
-    height: 0.875rem;
+  .te-row svg {
+    width: 100%;
+    overflow: visible;
   }
-  .bk-lay {
-    height: 100%;
+  .te-body {
+    stroke: var(--worm-b);
+    stroke-width: 4;
+    stroke-linecap: round;
   }
-  .ve-shelf .gap {
-    margin-left: 5px;
+  .te-feet,
+  .te-ant {
+    fill: none;
+    stroke: var(--worm-b);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+  .te-ant-dot {
+    fill: var(--worm-b);
+  }
+  .te-seg {
+    fill: var(--worm-a);
+  }
+  .te-seg.alt {
+    fill: var(--worm-b);
+  }
+  .te-part:hover .te-seg {
+    fill: var(--summer);
+  }
+  .te-n {
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 600;
+    text-anchor: middle;
+    fill: var(--paper);
+  }
+  .te-eye {
+    fill: #fff;
+  }
+  .te-pupil {
+    fill: #1f1d1a;
+  }
+  .te-cheek {
+    fill: var(--spring);
+    opacity: 0.8;
+  }
+  .te-next path {
+    fill: var(--paper);
+    stroke: var(--accent);
+    stroke-width: 1.1;
+    stroke-linejoin: round;
+  }
+  .te-months text {
+    font-family: var(--sans);
+    font-size: 9px;
+    text-anchor: middle;
+    fill: var(--text-tertiary);
   }
 </style>

@@ -1,13 +1,12 @@
 ---
 import type { TOCItem } from '@/types'
 
-// 목차는 세 자리에 같은 목록을 두고 CSS 로 하나만 보인다
-//  margin — 글 칸 오른쪽 여백에 따라 내려오는 목록
-//  side   — 왼쪽 차림표 아래에 따라 내려오는 목록
-//  inline — 제목 아래 접히는 「목차」 (좁은 화면에서는 늘 이것)
+// 목차는 두 자리에 같은 목록을 두고 화면 폭으로 하나만 보인다
+//  margin — 넓은 화면: 글 칸 오른쪽 여백에 따라 내려오는 목록
+//  inline — 좁은 화면: 제목 아래 접히는 「목차」
 interface Props {
   toc: TOCItem[]
-  placement: 'margin' | 'side' | 'inline'
+  placement: 'margin' | 'inline'
 }
 
 const { toc, placement } = Astro.props
@@ -149,16 +148,6 @@ const top = items.length ? Math.min(...items.map((item) => item.level)) : 1
     top: 3rem;
   }
 
-  /* 차림표 아래 */
-  .toc-side {
-    flex: 1;
-  }
-
-  .toc-side nav {
-    position: sticky;
-    top: 2rem;
-  }
-
   /* 제목 아래 접이식 */
   .toc-inline {
     margin: 0 0 1.75rem;
@@ -187,16 +176,8 @@ const top = items.length ? Math.min(...items.map((item) => item.level)) : 1
     margin-top: 0.5rem;
   }
 
-  /* 어떤 목차를 보일지: 넓은 화면은 시안(data-t, 기본 margin), 좁은 화면은 늘 접이식 */
   @media (min-width: 1200px) {
-    html:not([data-t]) .toc-margin,
-    html[data-t='1'] .toc-margin {
-      display: block;
-    }
-    html[data-t='2'] .toc-side {
-      display: block;
-    }
-    html[data-t='3'] .toc-inline {
+    .toc-margin {
       display: block;
     }
   }
