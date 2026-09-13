@@ -10,9 +10,9 @@ const currentMonth = now.getMonth() + 1
 const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 ---
 
-<section class="sec" id="독서-기록">
-  <h2 class="sec-head">
-    <span>독서 기록</span>
+<section class="reading" id="독서-기록">
+  <h2 class="reading-head">
+    <a href="/books">독서 기록</a>
     <em>{books.length}권</em>
   </h2>
   <div class="heat" role="grid" aria-label="달마다 읽은 권수">
@@ -43,27 +43,31 @@ const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
       })
     }
   </div>
-  <a class="sec-more" href="/books">책 목록 ›</a>
 </section>
 
 <style>
-  .sec {
-    scroll-margin-top: 1.5rem;
-  }
-
-  .sec-head {
-    margin: 0 0 0.75rem;
+  .reading-head {
+    margin: 0 0 0.6rem;
     display: flex;
     align-items: baseline;
     gap: 0.5rem;
-    font-size: var(--font-size-m);
+    font-size: 0.8125rem;
     font-weight: var(--font-weight-bold);
   }
 
-  .sec-head em {
+  .reading-head a {
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .reading-head a:hover {
+    box-shadow: 0 1px 0 var(--text-tertiary);
+  }
+
+  .reading-head em {
     margin-left: auto;
     font-style: normal;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: var(--font-weight-regular);
     color: var(--text-secondary);
     font-variant-numeric: tabular-nums;
@@ -72,22 +76,21 @@ const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
   .heat {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 2px;
     width: fit-content;
     max-width: 100%;
-    overflow-x: auto;
   }
 
   .row {
     display: grid;
-    grid-template-columns: 2.5rem repeat(12, 1rem) 1.75rem;
-    gap: 3px;
+    grid-template-columns: 2.2rem repeat(12, 0.66rem) 1.4rem;
+    gap: 2px;
     align-items: center;
   }
 
   .y,
   .n {
-    font-size: 0.75rem;
+    font-size: 0.66rem;
     color: var(--text-secondary);
     font-variant-numeric: tabular-nums;
   }
@@ -97,9 +100,9 @@ const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
   }
 
   .c {
-    width: 1rem;
-    height: 1rem;
-    border-radius: 2px;
+    width: 0.66rem;
+    height: 0.66rem;
+    border-radius: 1px;
     background-color: var(--text-primary);
     opacity: 0.06;
   }
@@ -122,17 +125,5 @@ const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
   .c.future {
     visibility: hidden;
-  }
-
-  .sec-more {
-    display: inline-block;
-    margin-top: 0.6rem;
-    font-size: 0.8125rem;
-    color: var(--text-secondary);
-    text-decoration: none;
-  }
-
-  .sec-more:hover {
-    color: var(--text-primary);
   }
 </style>

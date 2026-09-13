@@ -24,7 +24,7 @@ function isoDate(date: Date) {
   <ul class="sec-list">
     {
       posts.map((post, i) => (
-        <li hidden={i >= limit} data-id={post.id}>
+        <li hidden={i >= limit}>
           <a href={`/${post.id}/`}>
             <span class="t">{post.data.title}</span>
             <span class="d">{isoDate(post.data.pubDate)}</span>

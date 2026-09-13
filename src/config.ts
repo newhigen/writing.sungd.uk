@@ -12,7 +12,7 @@ export const themeConfig: ThemeConfig = {
 
   // GENERAL SETTINGS ////////////////////////////////////////////////////////////////////////////////////
   general: {
-    contentWidth: '46rem', // Content area width (8rem 차림표 + 36rem 본문)
+    contentWidth: '50rem', // Content area width (13rem 차림표·독서 기록 + 2.5rem + 34.5rem 본문)
     centeredLayout: true, // Use centered layout (false for left-aligned)
     themeToggle: true, // Show theme toggle button (uses system theme by default)
     postListDottedDivider: true, // Show dotted divider in post list

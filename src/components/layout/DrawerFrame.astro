@@ -2,7 +2,6 @@
 import Drawer from '@/components/layout/Drawer.astro'
 import Footer from '@/components/layout/Footer.astro'
 import GradientMask from '@/components/ui/GradientMask.astro'
-import VariantSwitcher from '@/components/layout/VariantSwitcher.astro'
 import { themeConfig } from '@/config'
 
 interface Props {
@@ -14,22 +13,31 @@ const { active } = Astro.props
 
 <div class="frame">
   <GradientMask />
-  <Drawer active={active} />
+  <aside class="frame-side">
+    <Drawer active={active} />
+    <slot name="aside" />
+  </aside>
   <div class="frame-main">
     <main>
       <slot />
     </main>
     {themeConfig.general.footer && <Footer />}
   </div>
-  <VariantSwitcher />
 </div>
 
 <style>
   .frame {
     flex: 1;
     display: grid;
-    grid-template-columns: 8rem minmax(0, 1fr);
-    column-gap: 2.125rem;
+    grid-template-columns: 13rem minmax(0, 1fr);
+    column-gap: 2.5rem;
+  }
+
+  .frame-side {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    align-self: start;
   }
 
   .frame-main {
@@ -46,6 +54,10 @@ const { active } = Astro.props
     .frame {
       grid-template-columns: minmax(0, 1fr);
       row-gap: 1.5rem;
+    }
+
+    .frame-side {
+      gap: 1.25rem;
     }
   }
 </style>

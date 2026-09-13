@@ -3,34 +3,27 @@ import IndexLayout from '@/layouts/IndexLayout.astro'
 import About from '@/components/widgets/About.astro'
 import DrawerSection from '@/components/widgets/DrawerSection.astro'
 import DrawerHeatmap from '@/components/widgets/DrawerHeatmap.astro'
-import DrawerStream from '@/components/widgets/DrawerStream.astro'
-import DrawerFeatured from '@/components/widgets/DrawerFeatured.astro'
 import { themeConfig } from '@/config'
 import { getSortedFilteredPosts } from '@/utils/draft'
 import type { CollectionEntry } from 'astro:content'
 
 const posts = await getSortedFilteredPosts()
 
+// 기술 글은 다른 블로그로 옮길 것이라 첫 화면에서 뺀다 (주소·RSS 로는 그대로 열린다)
 const TECH_TAGS = ['개발', 'Claude', 'Claude Code', 'DevEnv']
 const isTech = (post: CollectionEntry<'posts'>) =>
   post.data.category === '기술' || (post.data.tags ?? []).some((tag) => TECH_TAGS.includes(tag))
-const kindOf = (post: CollectionEntry<'posts'>) => (post.data.category === '책' ? '서평' : isTech(post) ? '기술' : '글')
 
-const reviews = posts.filter((post) => kindOf(post) === '서평')
-const tech = posts.filter((post) => kindOf(post) === '기술')
-const essays = posts.filter((post) => kindOf(post) === '글')
-const stream = posts.map((post) => ({ post, kind: kindOf(post) }))
+const reviews = posts.filter((post) => post.data.category === '책')
+const essays = posts.filter((post) => post.data.category !== '책' && !isTech(post))
 ---
 
 <IndexLayout title={themeConfig.site.title} description={themeConfig.site.description}>
+  <DrawerHeatmap slot="aside" />
   <About />
   <div class="drawers">
-    <DrawerFeatured post={posts[0]} kind={kindOf(posts[0])} />
-    <DrawerStream items={stream} limit={14} />
     <DrawerSection id="글" title="글" posts={essays} limit={8} />
-    <DrawerSection id="서평" title="서평" posts={reviews} limit={5} />
-    <DrawerHeatmap />
-    <DrawerSection id="기술" title="기술" posts={tech} limit={3} />
+    <DrawerSection id="서평" title="서평" posts={reviews} limit={8} />
   </div>
 </IndexLayout>
 

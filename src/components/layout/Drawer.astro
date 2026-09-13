@@ -11,7 +11,6 @@ const { active = '' } = Astro.props
 const items = [
   { label: '글', href: '/' },
   { label: '서평', href: '/#서평' },
-  { label: '기술', href: '/#기술' },
   { label: '독서 기록', href: '/books' },
   { label: '영화·시리즈', href: '/movies' },
   { label: '소개', href: 'https://sungd.uk' }
@@ -40,9 +39,6 @@ const items = [
   .drawer {
     display: flex;
     flex-direction: column;
-    align-self: start;
-    position: sticky;
-    top: 1.5rem;
   }
 
   .drawer-me {
@@ -84,7 +80,6 @@ const items = [
 
   @media (max-width: 640px) {
     .drawer {
-      position: static;
       flex-direction: row;
       flex-wrap: wrap;
       align-items: baseline;

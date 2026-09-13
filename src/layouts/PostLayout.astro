@@ -21,7 +21,7 @@ const { title, pubDate, readingTime, toc, category } = Astro.props as PostLayout
 
 const postSlug = Astro.url.pathname.split('/').filter(Boolean).pop() || ''
 const ogImage = `/open-graph/${postSlug}.png`
-const drawerActive = category === '책' ? '서평' : category === '기술' ? '기술' : '글'
+const drawerActive = category === '책' ? '서평' : '글'
 ---
 
 <BaseLayout title={`${title} · ${themeConfig.site.title}`} description={themeConfig.site.description} type="post">
