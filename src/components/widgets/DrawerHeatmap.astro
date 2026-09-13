@@ -16,6 +16,11 @@ const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     <em>{books.length}권</em>
   </h2>
   <div class="heat" role="grid" aria-label="달마다 읽은 권수">
+    <div class="row months" role="row">
+      <span></span>
+      {months.map((month) => <span class="m">{month}</span>)}
+      <span></span>
+    </div>
     {
       years.map((year) => {
         const yearTotal = books.filter((b) => b.year === year).length
@@ -26,14 +31,18 @@ const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
               const cell = cells.get(`${year}-${String(month).padStart(2, '0')}`)
               const count = cell?.count ?? 0
               const future = year > currentYear || (year === currentYear && month > currentMonth)
-              const titles = cell?.books.map((b) => b.title).join(', ')
+              const titles = cell?.books.map((b) => b.title) ?? []
               return (
                 <span
                   class:list={['c', { future }]}
                   data-level={future ? undefined : String(intensityLevel(count))}
+                  data-when={count > 0 ? `${year}년 ${month}월` : undefined}
+                  data-books={count > 0 ? JSON.stringify(titles) : undefined}
                   role="gridcell"
-                  title={count > 0 ? `${year}년 ${month}월 · ${count}권 — ${titles}` : undefined}
-                  aria-label={future ? undefined : `${year}년 ${month}월 ${count}권`}
+                  tabindex={count > 0 ? 0 : undefined}
+                  aria-label={
+                    future ? undefined : `${year}년 ${month}월 ${count}권${count ? ': ' + titles.join(', ') : ''}`
+                  }
                 />
               )
             })}
@@ -43,11 +52,115 @@ const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
       })
     }
   </div>
+  <div class="legend" aria-hidden="true">
+    <span>1권</span>
+    {[1, 2, 3, 4, 5].map((level) => <span class="c" data-level={String(level)} />)}
+    <span>5권+</span>
+  </div>
 </section>
+
+<script>
+  function initHeatmapTooltip() {
+    let tip: HTMLDivElement | null = null
+
+    const hide = () => {
+      tip?.remove()
+      tip = null
+    }
+
+    const show = (cell: HTMLElement) => {
+      hide()
+      const when = cell.dataset.when
+      const raw = cell.dataset.books
+      if (!when || !raw) return
+      let titles: string[] = []
+      try {
+        titles = JSON.parse(raw)
+      } catch {
+        return
+      }
+      if (!titles.length) return
+
+      tip = document.createElement('div')
+      tip.className = 'heat-tip'
+      const head = document.createElement('div')
+      head.className = 'heat-tip-head'
+      head.textContent = `${when} · ${titles.length}권`
+      tip.appendChild(head)
+      const list = document.createElement('ul')
+      for (const title of titles) {
+        const li = document.createElement('li')
+        li.textContent = title
+        list.appendChild(li)
+      }
+      tip.appendChild(list)
+      document.body.appendChild(tip)
+
+      const rect = cell.getBoundingClientRect()
+      const width = tip.offsetWidth
+      const height = tip.offsetHeight
+      let left = rect.left + window.scrollX
+      let top = rect.bottom + window.scrollY + 6
+      if (left + width > window.innerWidth - 12) left = window.innerWidth - width - 12
+      if (rect.bottom + height + 6 > window.innerHeight) top = rect.top + window.scrollY - height - 6
+      tip.style.left = `${left}px`
+      tip.style.top = `${top}px`
+    }
+
+    document.querySelectorAll<HTMLElement>('.heat .c[data-books]').forEach((cell) => {
+      cell.addEventListener('mouseenter', () => show(cell))
+      cell.addEventListener('mouseleave', hide)
+      cell.addEventListener('focus', () => show(cell))
+      cell.addEventListener('blur', hide)
+    })
+  }
+  document.addEventListener('astro:page-load', initHeatmapTooltip)
+</script>
+
+<style is:global>
+  .heat-tip {
+    position: absolute;
+    z-index: 100;
+    min-width: 10rem;
+    max-width: 16rem;
+    padding: 0.5rem 0.625rem;
+    background-color: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 0.25rem;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+    pointer-events: none;
+    font-family: var(--sans);
+  }
+
+  .heat-tip-head {
+    margin-bottom: 0.375rem;
+    font-size: 0.6875rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .heat-tip ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1875rem;
+  }
+
+  .heat-tip li {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+</style>
 
 <style>
   .reading-head {
-    margin: 0 0 0.6rem;
+    margin: 0 0 0.5rem;
     display: flex;
     align-items: baseline;
     gap: 0.5rem;
@@ -88,6 +201,18 @@ const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     align-items: center;
   }
 
+  .months {
+    margin-bottom: 1px;
+  }
+
+  .m {
+    font-size: 0.5rem;
+    line-height: 1;
+    text-align: center;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+
   .y,
   .n {
     font-size: 0.66rem;
@@ -105,6 +230,7 @@ const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     border-radius: 1px;
     background-color: var(--text-primary);
     opacity: 0.06;
+    transition: opacity 0.15s ease-out;
   }
 
   .c[data-level='1'] {
@@ -123,7 +249,34 @@ const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     opacity: 0.85;
   }
 
+  .c[data-books] {
+    cursor: pointer;
+  }
+
+  .c[data-books]:hover,
+  .c[data-books]:focus-visible {
+    opacity: 1;
+    outline: none;
+  }
+
   .c.future {
     visibility: hidden;
+  }
+
+  .legend {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-top: 0.5rem;
+    font-size: 0.5625rem;
+    color: var(--text-tertiary);
+  }
+
+  .legend span:first-child {
+    margin-right: 0.15rem;
+  }
+
+  .legend span:last-child {
+    margin-left: 0.15rem;
   }
 </style>
