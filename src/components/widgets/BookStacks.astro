@@ -12,8 +12,7 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 
 interface StackBook {
   book: Book
-  thick: number // px
-  width: number // % of column
+  thick: number // px, 쪽수에 비례
   shift: number // px, 아래 책에서 조금씩만 밀린다
   tilt: number // deg
   cover: number // 바로 아래 책과 다른 색
@@ -30,8 +29,7 @@ const stackOf = (list: Book[]): StackBook[] => {
     below = cover
     return {
       book,
-      thick: 6 + ((h >>> 6) % 3),
-      width: 74 + ((h >>> 9) % 27),
+      thick: book.pages ? clamp(Math.round(3 + book.pages / 75), 4, 12) : 7,
       shift: i === 0 ? 0 : shift,
       tilt: i === 0 ? 0 : (((h >>> 12) % 5) - 2) * 0.5,
       cover
@@ -62,8 +60,8 @@ const tallest = Math.max(...rows.flatMap((row) => row.months.map((m) => m.stack.
               {stack.map((s) => (
                 <i
                   class="bs-book"
-                  style={`--c:var(--bk${s.cover});height:${s.thick}px;width:${s.width}%;transform:translateX(${s.shift}px) rotate(${s.tilt}deg)`}
-                  data-tip={`${row.year}년 ${month}월 · ${s.book.title}`}
+                  style={`--c:var(--bk${s.cover});height:${s.thick}px;transform:translateX(${s.shift}px) rotate(${s.tilt}deg)`}
+                  data-tip={`${row.year}년 ${month}월 · ${s.book.title}${s.book.pages ? ` · ${s.book.pages}쪽` : ''}`}
                 />
               ))}
             </span>
@@ -200,6 +198,7 @@ const tallest = Math.max(...rows.flatMap((row) => row.months.map((m) => m.stack.
   .bs-book {
     display: block;
     flex: none;
+    width: 86%;
     border-radius: 1.5px;
     background:
       linear-gradient(

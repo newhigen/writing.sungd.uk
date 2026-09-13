@@ -6,6 +6,7 @@ export interface Book {
   englishTitle: string
   year: number
   month: number
+  pages: number | null
 }
 
 export interface HeatmapCell {
@@ -31,7 +32,8 @@ function parseCSV(csv: string): Book[] {
       const englishTitle = (cols[1] ?? '').replace(/^"|"$/g, '').trim()
       const year = parseInt(cols[2] ?? '', 10)
       const month = parseInt(cols[3] ?? '', 10)
-      return { title, englishTitle, year, month }
+      const pages = parseInt(cols[4] ?? '', 10) || null
+      return { title, englishTitle, year, month, pages }
     })
     .filter((b) => (b.title || b.englishTitle) && b.year && b.month)
 }
