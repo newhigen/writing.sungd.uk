@@ -1,11 +1,3 @@
-import type { CollectionEntry } from 'astro:content'
-
-const TECH_TAGS = ['개발', 'Claude', 'Claude Code', 'DevEnv']
-
-export function isTech(post: CollectionEntry<'posts'>) {
-  return post.data.category === '기술' || (post.data.tags ?? []).some((tag) => TECH_TAGS.includes(tag))
-}
-
 export function isoDate(date: Date) {
   return date.toISOString().slice(0, 10)
 }

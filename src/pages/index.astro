@@ -5,10 +5,8 @@ import HomeSentences from '@/components/home/HomeSentences.astro'
 import { themeConfig } from '@/config'
 import { loadBooks } from '@/utils/books'
 import { getSortedFilteredPosts } from '@/utils/draft'
-import { isTech } from '@/utils/home'
 
-// 기술 글은 다른 블로그로 옮길 것이라 첫 화면에서 뺀다 (주소·RSS 로는 그대로 열린다)
-const posts = (await getSortedFilteredPosts()).filter((post) => !isTech(post))
+const posts = await getSortedFilteredPosts()
 const bookCount = loadBooks().length
 ---
 
