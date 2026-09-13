@@ -63,12 +63,21 @@ const tallest = Math.max(...rows.flatMap((row) => row.months.map((m) => m.stack.
         <span class="bs-year">{row.year}</span>
         <div class="bs-desk">
           {row.months.map(({ month, stack }) => (
-            <span class="bs-stack" aria-label={stack.length ? `${row.year}년 ${month}월 ${stack.length}권` : undefined}>
+            <span
+              class="bs-stack"
+              tabindex={compact && stack.length ? 0 : undefined}
+              aria-label={stack.length ? `${row.year}년 ${month}월 ${stack.length}권` : undefined}
+              data-tip-head={compact && stack.length ? `${row.year}년 ${month}월 · ${stack.length}권` : undefined}
+              data-tip-list={compact && stack.length ? JSON.stringify(stack.map((s) => s.book.title)) : undefined}
+            >
               {stack.map((s) => (
                 <i
                   class="bs-book"
                   style={`--c:var(--bk${s.cover});height:${s.thick}px;transform:translateX(${s.shift}px) rotate(${s.tilt}deg)`}
-                  data-tip={`${row.year}년 ${month}월 · ${s.book.title}${s.book.pages ? ` · ${s.book.pages}쪽` : ''}`}
+                  data-tip-head={
+                    compact ? undefined : `${row.year}년 ${month}월${s.book.pages ? ` · ${s.book.pages}쪽` : ''}`
+                  }
+                  data-tip-list={compact ? undefined : JSON.stringify([s.book.title])}
                 />
               ))}
             </span>
@@ -94,19 +103,39 @@ const tallest = Math.max(...rows.flatMap((row) => row.months.map((m) => m.stack.
       tip?.remove()
       tip = null
     }
-    document.querySelectorAll<HTMLElement>('.bs-book').forEach((book) => {
-      book.addEventListener('mouseenter', () => {
-        hide()
-        tip = document.createElement('div')
-        tip.className = 'bs-tip'
-        tip.textContent = book.dataset.tip ?? ''
-        document.body.appendChild(tip)
-        const rect = book.getBoundingClientRect()
-        const left = Math.min(rect.left + window.scrollX, window.innerWidth - tip.offsetWidth - 12)
-        tip.style.left = `${Math.max(12, left)}px`
-        tip.style.top = `${rect.bottom + window.scrollY + 8}px`
-      })
-      book.addEventListener('mouseleave', hide)
+    // 큰 판은 책마다, 작은 판은 달마다 뜬다
+    const show = (target: HTMLElement) => {
+      hide()
+      let titles: string[] = []
+      try {
+        titles = JSON.parse(target.dataset.tipList ?? '[]')
+      } catch {
+        return
+      }
+      tip = document.createElement('div')
+      tip.className = 'bs-tip'
+      const head = document.createElement('div')
+      head.className = 'bs-tip-head'
+      head.textContent = target.dataset.tipHead ?? ''
+      tip.appendChild(head)
+      const list = document.createElement('ul')
+      for (const title of titles) {
+        const li = document.createElement('li')
+        li.textContent = title
+        list.appendChild(li)
+      }
+      tip.appendChild(list)
+      document.body.appendChild(tip)
+      const rect = target.getBoundingClientRect()
+      const left = Math.min(rect.left + window.scrollX, window.innerWidth - tip.offsetWidth - 12)
+      tip.style.left = `${Math.max(12, left)}px`
+      tip.style.top = `${rect.bottom + window.scrollY + 8}px`
+    }
+    document.querySelectorAll<HTMLElement>('.bs [data-tip-head]').forEach((target) => {
+      target.addEventListener('mouseenter', () => show(target))
+      target.addEventListener('mouseleave', hide)
+      target.addEventListener('focus', () => show(target))
+      target.addEventListener('blur', hide)
     })
   }
   document.addEventListener('astro:page-load', initBookStacks)
@@ -141,16 +170,39 @@ const tallest = Math.max(...rows.flatMap((row) => row.months.map((m) => m.stack.
   .bs-tip {
     position: absolute;
     z-index: 100;
-    max-width: 18rem;
-    padding: 0.3rem 0.55rem;
+    min-width: 8rem;
+    max-width: 16rem;
+    padding: 0.5rem 0.625rem;
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 0.25rem;
     font-family: var(--sans);
-    font-size: 0.75rem;
-    line-height: 1.5;
-    color: var(--text-primary);
     pointer-events: none;
+  }
+
+  .bs-tip-head {
+    margin-bottom: 0.25rem;
+    font-size: 0.6875rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bs-tip ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1875rem;
+  }
+
+  .bs-tip li {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 </style>
 
@@ -257,8 +309,19 @@ const tallest = Math.max(...rows.flatMap((row) => row.months.map((m) => m.stack.
     background: var(--c);
   }
 
-  .compact .bs-book:hover {
+  .compact .bs-stack[data-tip-head] {
+    cursor: pointer;
+    outline: none;
+    transition: translate 0.15s ease-out;
+  }
+
+  .compact .bs-stack[data-tip-head]:hover,
+  .compact .bs-stack[data-tip-head]:focus-visible {
     translate: 0 -1px;
+  }
+
+  .compact .bs-book:hover {
+    translate: none;
   }
 
   .compact.bs .bs-months {

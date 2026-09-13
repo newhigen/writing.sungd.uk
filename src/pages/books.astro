@@ -3,6 +3,7 @@ import '@/styles/global.css'
 import BaseHead from '@/components/layout/BaseHead.astro'
 import DrawerFrame from '@/components/layout/DrawerFrame.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
+import BookStacks from '@/components/widgets/BookStacks.astro'
 import { loadBooks, getBooksByYear } from '@/utils/books'
 import { getCollection } from 'astro:content'
 import { themeConfig } from '@/config'
@@ -80,6 +81,9 @@ const yearSections: YearSection[] = yearGroups.map((group) => {
   <BaseHead title={`독서 기록 · ${themeConfig.site.title}`} description="독서 기록" slot="head" />
   <DrawerFrame active="독서 기록">
     <h1 class="page-title">독서 기록 <em>{books.length}권</em></h1>
+    <div class="stacks">
+      <BookStacks />
+    </div>
     <section class="book-list">
       {
         yearSections.map((section) => (
@@ -127,6 +131,10 @@ const yearSections: YearSection[] = yearGroups.map((group) => {
     font-weight: var(--font-weight-regular);
     color: var(--text-secondary);
     font-variant-numeric: tabular-nums;
+  }
+
+  .stacks {
+    margin: 1.25rem 0 2.75rem;
   }
 
   .book-list {
