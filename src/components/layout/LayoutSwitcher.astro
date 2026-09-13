@@ -1,0 +1,85 @@
+---
+// 임시: 두 칸 배치 시안 전환기. 고르면 지운다.
+---
+
+<div class="lsw" aria-label="배치 시안">
+  <button data-l="">지금</button>
+  <button data-l="1">글 칸 가운데</button>
+  <button data-l="2">전체를 왼쪽으로</button>
+</div>
+
+<script is:inline>
+  ;(() => {
+    const q = new URLSearchParams(location.search).get('l')
+    let l = q !== null ? q : localStorage.getItem('sd-l') || ''
+    const apply = () => {
+      if (l) document.documentElement.dataset.l = l
+      else delete document.documentElement.dataset.l
+      document.querySelectorAll('.lsw button').forEach((b) => b.classList.toggle('on', b.dataset.l === l))
+    }
+    apply()
+    document.addEventListener('astro:page-load', () => {
+      apply()
+      document.querySelectorAll('.lsw button').forEach((b) =>
+        b.addEventListener('click', () => {
+          l = b.dataset.l
+          localStorage.setItem('sd-l', l)
+          apply()
+        })
+      )
+    })
+  })()
+</script>
+
+<style is:global>
+  .lsw {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    z-index: 9;
+    font-family: system-ui, sans-serif;
+  }
+  .lsw button {
+    font: inherit;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border: none;
+    border-radius: 0.3rem;
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .lsw button.on {
+    background: var(--text-primary);
+    color: var(--bg);
+  }
+
+  @media (min-width: 1200px) {
+    /* 1 글 칸 가운데: 본문 칸(34.5rem)을 화면 가운데에 두고, 차림표·히트맵은 왼쪽 여백에 건다 */
+    html[data-l='1'] body {
+      max-width: 34.5rem !important;
+    }
+    html[data-l='1'] .frame {
+      display: block;
+      position: relative;
+    }
+    html[data-l='1'] .frame-side {
+      position: absolute;
+      top: 0;
+      right: calc(100% + 2.5rem);
+      width: 13rem;
+    }
+
+    /* 2 전체를 왼쪽으로: 두 칸 묶음을 3rem 왼쪽으로 옮긴다 */
+    html[data-l='2'] body {
+      position: relative;
+      left: -3rem;
+    }
+  }
+</style>
