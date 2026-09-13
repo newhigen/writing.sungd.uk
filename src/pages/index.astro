@@ -1,16 +1,53 @@
 ---
 import IndexLayout from '@/layouts/IndexLayout.astro'
-import DrawerHeatmap from '@/components/widgets/DrawerHeatmap.astro'
+import BookStacks from '@/components/widgets/BookStacks.astro'
 import HomeSentences from '@/components/home/HomeSentences.astro'
 import { themeConfig } from '@/config'
+import { loadBooks } from '@/utils/books'
 import { getSortedFilteredPosts } from '@/utils/draft'
 import { isTech } from '@/utils/home'
 
 // 기술 글은 다른 블로그로 옮길 것이라 첫 화면에서 뺀다 (주소·RSS 로는 그대로 열린다)
 const posts = (await getSortedFilteredPosts()).filter((post) => !isTech(post))
+const bookCount = loadBooks().length
 ---
 
 <IndexLayout title={themeConfig.site.title} description={themeConfig.site.description}>
-  <DrawerHeatmap slot="aside" />
+  <section class="reading" slot="aside">
+    <h2 class="reading-head">
+      <a href="/books">독서 기록</a>
+      <em>{bookCount}권</em>
+    </h2>
+    <BookStacks compact />
+  </section>
   <HomeSentences posts={posts} lead={6} tail={12} />
 </IndexLayout>
+
+<style>
+  .reading-head {
+    margin: 0 0 0.75rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: var(--font-weight-bold);
+  }
+
+  .reading-head a {
+    font-family: var(--head);
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .reading-head a:hover {
+    color: var(--accent);
+  }
+
+  .reading-head em {
+    font-style: normal;
+    font-size: 0.7rem;
+    font-weight: var(--font-weight-regular);
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+</style>

@@ -4,7 +4,7 @@ import type { PostLayoutProps } from '@/types'
 import FootnoteScroll from '@/components/widgets/FootnoteScroll.astro'
 import BaseHead from '@/components/layout/BaseHead.astro'
 import DrawerFrame from '@/components/layout/DrawerFrame.astro'
-import TableOfContents from '@/components/ui/TableOfContents.astro'
+import PostToc from '@/components/ui/PostToc.astro'
 import ImageOptimizer from '@/components/ui/ImageOptimizer.astro'
 import ImageViewer from '@/components/ui/ImageViewer.astro'
 import GitHubCard from '@/components/ui/GitHubCard.astro'
@@ -33,13 +33,14 @@ const ogImage = `/open-graph/${postSlug}.png`
   <DrawerFrame active="글">
     <div class="post-container">
       <div class="prose">
-        {themeConfig.post.toc && <TableOfContents toc={toc} />}
+        {themeConfig.post.toc && <PostToc toc={toc ?? []} placement="margin" />}
         <div class="title">
           <div class="date">
             <time datetime={pubDate.toISOString()}>{pubDate.toISOString().slice(0, 10).replaceAll('-', '.')}</time>
           </div>
           <h1><KindTitle title={title} review={category === '책'} /></h1>
         </div>
+        {themeConfig.post.toc && <PostToc toc={toc ?? []} placement="inline" />}
         <article class="content">
           <slot />
         </article>

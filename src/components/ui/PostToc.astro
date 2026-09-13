@@ -1,0 +1,190 @@
+---
+import type { TOCItem } from '@/types'
+
+// 목차는 두 자리에 같은 목록을 두고 화면 폭으로 하나만 보인다
+//  margin — 넓은 화면: 글 칸 오른쪽 여백에 따라 내려오는 목록
+//  inline — 좁은 화면: 제목 아래 접히는 「목차」
+interface Props {
+  toc: TOCItem[]
+  placement: 'margin' | 'inline'
+}
+
+const { toc, placement } = Astro.props
+const items = toc
+const top = items.length ? Math.min(...items.map((item) => item.level)) : 1
+---
+
+{
+  items.length >= 2 &&
+    (placement === 'inline' ? (
+      <details class="toc toc-inline">
+        <summary>목차</summary>
+        <ol>
+          {items.map((item) => (
+            <li class:list={{ sub: item.level > top }}>
+              <a href={`#${item.id}`} data-toc={item.id}>
+                {item.text}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </details>
+    ) : (
+      <div class:list={['toc', `toc-${placement}`]}>
+        <nav aria-label="목차">
+          <p class="toc-head">목차</p>
+          <ol>
+            {items.map((item) => (
+              <li class:list={{ sub: item.level > top }}>
+                <a href={`#${item.id}`} data-toc={item.id}>
+                  {item.text}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      </div>
+    ))
+}
+
+<script>
+  function initToc() {
+    const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('.toc a[data-toc]'))
+    if (!links.length) return
+    const ids = [...new Set(links.map((a) => a.dataset.toc!))]
+    const headings = ids.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[]
+
+    const update = () => {
+      const y = window.scrollY + 120
+      let current = ''
+      for (const h of headings) {
+        if (h.getBoundingClientRect().top + window.scrollY <= y) current = h.id
+      }
+      links.forEach((a) => a.classList.toggle('on', a.dataset.toc === current))
+    }
+
+    let raf = 0
+    const onScroll = () => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(update)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    document.addEventListener('astro:before-swap', () => window.removeEventListener('scroll', onScroll), {
+      once: true
+    })
+    update()
+  }
+  document.addEventListener('astro:page-load', initToc)
+</script>
+
+<style is:global>
+  .toc {
+    display: none;
+    font-family: var(--sans);
+  }
+
+  .toc ol,
+  .prose .toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .toc li,
+  .prose .toc ol li {
+    margin: 0;
+    padding: 0;
+  }
+
+  .toc li::before,
+  .prose .toc ol li::before {
+    display: none;
+  }
+
+  .toc a {
+    display: block;
+    padding: 0.2rem 0;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--text-tertiary);
+    text-decoration: none;
+    transition: color 0.15s ease-out;
+  }
+
+  .toc li.sub a {
+    padding-left: 0.875rem;
+    font-size: 0.75rem;
+  }
+
+  .toc a:hover {
+    color: var(--text-secondary);
+  }
+
+  .toc a.on {
+    color: var(--accent);
+  }
+
+  .toc-head {
+    margin: 0 0 0.4rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  /* 오른쪽 여백 */
+  .prose {
+    position: relative;
+  }
+
+  .toc-margin {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(100% + 3rem);
+    width: 12rem;
+  }
+
+  .toc-margin nav {
+    position: sticky;
+    top: 3rem;
+  }
+
+  /* 제목 아래 접이식 */
+  .toc-inline {
+    margin: 0 0 1.75rem;
+  }
+
+  .toc-inline summary {
+    cursor: pointer;
+    list-style: none;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+  }
+
+  .toc-inline summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .toc-inline summary::after {
+    content: ' ›';
+  }
+
+  .toc-inline[open] summary::after {
+    content: ' ‹';
+  }
+
+  .prose .toc-inline ol {
+    margin-top: 0.5rem;
+  }
+
+  @media (min-width: 1200px) {
+    .toc-margin {
+      display: block;
+    }
+  }
+
+  @media (max-width: 1199px) {
+    .toc-inline {
+      display: block;
+    }
+  }
+</style>

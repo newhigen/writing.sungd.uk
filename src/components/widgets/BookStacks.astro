@@ -1,0 +1,342 @@
+---
+import { loadBooks, getHeatmapData, type Book } from '@/utils/books'
+
+// 달마다 읽은 책을 눕혀 쌓은 책탑. 한 해가 책상 한 줄이다.
+interface Props {
+  recent?: number // 최근 몇 해만
+  compact?: boolean // 차림표에 들어가는 작은 판
+}
+
+const { recent, compact = false } = Astro.props
+const scale = compact ? 0.5 : 1
+const books = loadBooks()
+const { cells, years } = getHeatmapData(books)
+const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+
+// 같은 책은 늘 같은 모양이도록 제목에서 값을 뽑는다
+const hash = (s: string) => [...s].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7)
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
+
+interface StackBook {
+  book: Book
+  thick: number // px, 쪽수에 비례
+  shift: number // px, 아래 책에서 조금씩만 밀린다
+  tilt: number // deg
+  cover: number // 바로 아래 책과 다른 색
+}
+
+const stackOf = (list: Book[]): StackBook[] => {
+  let shift = 0
+  let below = -1
+  return list.map((book, i) => {
+    const h = hash(book.title)
+    if (i > 0) shift = clamp(shift + (((h >>> 3) % 5) - 2), -3, 3)
+    let cover = h % 8
+    if (cover === below) cover = (cover + 1 + ((h >>> 18) % 7)) % 8
+    below = cover
+    return {
+      book,
+      thick: (book.pages ? clamp(Math.round(3 + book.pages / 75), 4, 12) : 7) * scale,
+      shift: i === 0 ? 0 : shift * scale,
+      tilt: i === 0 || compact ? 0 : (((h >>> 12) % 5) - 2) * 0.5,
+      cover
+    }
+  })
+}
+
+const rows = years.slice(0, recent ?? years.length).map((year) => ({
+  year,
+  total: books.filter((b) => b.year === year).length,
+  months: months.map((month) => ({
+    month,
+    stack: stackOf(cells.get(`${year}-${String(month).padStart(2, '0')}`)?.books ?? [])
+  }))
+}))
+
+const tallest = Math.max(...rows.flatMap((row) => row.months.map((m) => m.stack.reduce((sum, s) => sum + s.thick, 0))))
+---
+
+<div class:list={['bs', { compact }]} style={`--desk:${Math.ceil(tallest) + (compact ? 2 : 4)}px`}>
+  {
+    rows.map((row) => (
+      <div class="bs-row">
+        <span class="bs-year">{row.year}</span>
+        <div class="bs-desk">
+          {row.months.map(({ month, stack }) => (
+            <span
+              class="bs-stack"
+              tabindex={compact && stack.length ? 0 : undefined}
+              aria-label={stack.length ? `${row.year}년 ${month}월 ${stack.length}권` : undefined}
+              data-tip-head={compact && stack.length ? `${row.year}년 ${month}월 · ${stack.length}권` : undefined}
+              data-tip-list={compact && stack.length ? JSON.stringify(stack.map((s) => s.book.title)) : undefined}
+            >
+              {stack.map((s) => (
+                <i
+                  class="bs-book"
+                  style={`--c:var(--bk${s.cover});height:${s.thick}px;transform:translateX(${s.shift}px) rotate(${s.tilt}deg)`}
+                  data-tip-head={
+                    compact ? undefined : `${row.year}년 ${month}월${s.book.pages ? ` · ${s.book.pages}쪽` : ''}`
+                  }
+                  data-tip-list={compact ? undefined : JSON.stringify([s.book.title])}
+                />
+              ))}
+            </span>
+          ))}
+        </div>
+        <span class="bs-total">{row.total}</span>
+      </div>
+    ))
+  }
+  <div class="bs-row bs-months" aria-hidden="true">
+    <span></span>
+    <div class="bs-month-labels">
+      {months.map((month) => <span>{compact && month % 3 !== 0 ? '' : month}</span>)}
+    </div>
+    <span></span>
+  </div>
+</div>
+
+<script>
+  function initBookStacks() {
+    let tip: HTMLDivElement | null = null
+    const hide = () => {
+      tip?.remove()
+      tip = null
+    }
+    // 큰 판은 책마다, 작은 판은 달마다 뜬다
+    const show = (target: HTMLElement) => {
+      hide()
+      let titles: string[] = []
+      try {
+        titles = JSON.parse(target.dataset.tipList ?? '[]')
+      } catch {
+        return
+      }
+      tip = document.createElement('div')
+      tip.className = 'bs-tip'
+      const head = document.createElement('div')
+      head.className = 'bs-tip-head'
+      head.textContent = target.dataset.tipHead ?? ''
+      tip.appendChild(head)
+      const list = document.createElement('ul')
+      for (const title of titles) {
+        const li = document.createElement('li')
+        li.textContent = title
+        list.appendChild(li)
+      }
+      tip.appendChild(list)
+      document.body.appendChild(tip)
+      const rect = target.getBoundingClientRect()
+      const left = Math.min(rect.left + window.scrollX, window.innerWidth - tip.offsetWidth - 12)
+      tip.style.left = `${Math.max(12, left)}px`
+      tip.style.top = `${rect.bottom + window.scrollY + 8}px`
+    }
+    document.querySelectorAll<HTMLElement>('.bs [data-tip-head]').forEach((target) => {
+      target.addEventListener('mouseenter', () => show(target))
+      target.addEventListener('mouseleave', hide)
+      target.addEventListener('focus', () => show(target))
+      target.addEventListener('blur', hide)
+    })
+  }
+  document.addEventListener('astro:page-load', initBookStacks)
+</script>
+
+<style is:global>
+  :root,
+  html.light {
+    --bk0: #2f6b66;
+    --bk1: #b5573f;
+    --bk2: #d4a13f;
+    --bk3: #6b82a8;
+    --bk4: #8b6f9f;
+    --bk5: #7d8f57;
+    --bk6: #cf8f8a;
+    --bk7: #3e4a5e;
+    --bk-desk: #b98b5e;
+  }
+
+  html.dark {
+    --bk0: #5fa39c;
+    --bk1: #cf7a62;
+    --bk2: #dcb45c;
+    --bk3: #8ea3c7;
+    --bk4: #ab91bd;
+    --bk5: #9fb27a;
+    --bk6: #dea7a2;
+    --bk7: #7d8aa3;
+    --bk-desk: #8a6848;
+  }
+
+  .bs-tip {
+    position: absolute;
+    z-index: 100;
+    min-width: 8rem;
+    max-width: 16rem;
+    padding: 0.5rem 0.625rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 0.25rem;
+    font-family: var(--sans);
+    pointer-events: none;
+  }
+
+  .bs-tip-head {
+    margin-bottom: 0.25rem;
+    font-size: 0.6875rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bs-tip ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1875rem;
+  }
+
+  .bs-tip li {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+</style>
+
+<style>
+  .bs {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .bs-row {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) 2rem;
+    align-items: end;
+  }
+
+  /* 해·권수는 책상 윗면에 글자 밑줄을 맞춘다 */
+  .bs-year,
+  .bs-total {
+    padding-bottom: 3px;
+    font-size: 0.6875rem;
+    line-height: 1;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bs-total {
+    text-align: right;
+  }
+
+  .bs-desk,
+  .bs-month-labels {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 6px;
+  }
+
+  .bs-desk {
+    height: var(--desk);
+    align-items: end;
+    border-bottom: 3px solid var(--bk-desk);
+    border-radius: 0 0 1px 1px;
+  }
+
+  .bs-stack {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+  }
+
+  /* 책등: 표지색에 제목 띠 두 줄 */
+  .bs-book {
+    display: block;
+    flex: none;
+    width: 86%;
+    border-radius: 1.5px;
+    background:
+      linear-gradient(
+        to right,
+        transparent 16%,
+        rgba(255, 255, 255, 0.26) 16% 20%,
+        transparent 20% 80%,
+        rgba(255, 255, 255, 0.26) 80% 84%,
+        transparent 84%
+      ),
+      var(--c);
+    transition: translate 0.15s ease-out;
+  }
+
+  .bs-book:hover {
+    translate: 0 -2px;
+  }
+
+  .bs-months {
+    margin-top: -0.5rem;
+  }
+
+  /* 작은 판 */
+  .bs.compact {
+    gap: 0.4rem;
+  }
+
+  .compact .bs-row {
+    grid-template-columns: 2.2rem minmax(0, 1fr) 1.4rem;
+  }
+
+  .compact .bs-year,
+  .compact .bs-total {
+    padding-bottom: 1px;
+    font-size: 0.625rem;
+  }
+
+  .compact .bs-desk,
+  .compact .bs-month-labels {
+    column-gap: 2px;
+  }
+
+  .compact .bs-desk {
+    border-bottom-width: 2px;
+  }
+
+  .compact .bs-book {
+    border-radius: 1px;
+    background: var(--c);
+  }
+
+  .compact .bs-stack[data-tip-head] {
+    cursor: pointer;
+    outline: none;
+    transition: translate 0.15s ease-out;
+  }
+
+  .compact .bs-stack[data-tip-head]:hover,
+  .compact .bs-stack[data-tip-head]:focus-visible {
+    translate: 0 -1px;
+  }
+
+  .compact .bs-book:hover {
+    translate: none;
+  }
+
+  .compact.bs .bs-months {
+    margin-top: -0.2rem;
+  }
+
+  .compact .bs-month-labels span {
+    font-size: 0.5rem;
+  }
+
+  .bs-month-labels span {
+    white-space: nowrap;
+    font-size: 0.5625rem;
+    text-align: center;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+</style>
