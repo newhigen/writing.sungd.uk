@@ -28,7 +28,3 @@ export function excerpt(body = '', max = 150) {
     .replace(/[*_`]/g, '')
   return text.length > max ? text.slice(0, max).trimEnd() + '…' : text
 }
-
-export function normalizeTitle(title: string) {
-  return title.toLowerCase().replace(/[^a-z0-9가-힣ㄱ-ㅎㅏ-ㅣ]/g, '')
-}

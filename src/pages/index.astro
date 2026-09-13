@@ -1,39 +1,16 @@
 ---
 import IndexLayout from '@/layouts/IndexLayout.astro'
-import About from '@/components/widgets/About.astro'
-import DrawerSection from '@/components/widgets/DrawerSection.astro'
 import DrawerHeatmap from '@/components/widgets/DrawerHeatmap.astro'
-import HomeJournal from '@/components/home/HomeJournal.astro'
 import HomeSentences from '@/components/home/HomeSentences.astro'
-import HomeFull from '@/components/home/HomeFull.astro'
-import HomeStudy from '@/components/home/HomeStudy.astro'
-import AsideBooks from '@/components/home/AsideBooks.astro'
-import HomeSwitcher from '@/components/home/HomeSwitcher.astro'
 import { themeConfig } from '@/config'
 import { getSortedFilteredPosts } from '@/utils/draft'
-import { loadBooks } from '@/utils/books'
 import { isTech } from '@/utils/home'
 
 // 기술 글은 다른 블로그로 옮길 것이라 첫 화면에서 뺀다 (주소·RSS 로는 그대로 열린다)
 const posts = (await getSortedFilteredPosts()).filter((post) => !isTech(post))
-const reviews = posts.filter((post) => post.data.category === '책')
-const essays = posts.filter((post) => post.data.category !== '책')
-const books = loadBooks()
 ---
 
 <IndexLayout title={themeConfig.site.title} description={themeConfig.site.description}>
-  <Fragment slot="aside">
-    <div data-home="0 2"><DrawerHeatmap /></div>
-    <div data-home="4"><AsideBooks books={books} limit={12} /></div>
-  </Fragment>
-  <About />
-  <div data-home="0" class="drawers">
-    <DrawerSection id="글" title="글" posts={essays} limit={8} />
-    <DrawerSection id="서평" title="서평" posts={reviews} limit={8} />
-  </div>
-  <div data-home="1"><HomeJournal posts={posts} books={books} open={5} /></div>
-  <div data-home="2"><HomeSentences posts={posts} lead={6} tail={12} /></div>
-  <div data-home="3"><HomeFull posts={posts} tail={8} /></div>
-  <div data-home="4"><HomeStudy essays={essays} reviews={reviews} books={books} limit={10} /></div>
-  <HomeSwitcher />
+  <DrawerHeatmap slot="aside" />
+  <HomeSentences posts={posts} lead={6} tail={12} />
 </IndexLayout>

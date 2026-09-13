@@ -10,8 +10,8 @@ interface Props {
 
 const { posts, lead, tail } = Astro.props
 const leads = posts.slice(0, lead)
-const tails = posts.slice(lead, lead + tail)
-const rest = posts.length - lead - tail
+const tails = posts.slice(lead)
+const rest = tails.length - tail
 ---
 
 <section class="sentences">
@@ -32,8 +32,8 @@ const rest = posts.length - lead - tail
   <h2 class="tail-head">그 밖의 글</h2>
   <ul class="tail">
     {
-      tails.map((p) => (
-        <li>
+      tails.map((p, i) => (
+        <li hidden={i >= tail}>
           <a href={`/${p.id}/`}>
             <span class="k">{kindOf(p)}</span>
             <span class="t">{p.data.title}</span>
@@ -43,15 +43,32 @@ const rest = posts.length - lead - tail
       ))
     }
   </ul>
-  {rest > 0 && <p class="rest">{rest}편이 더 있다.</p>}
+  {
+    rest > 0 && (
+      <button class="more" type="button" data-more>
+        {rest}편 더 ›
+      </button>
+    )
+  }
 </section>
+
+<script is:inline>
+  document.addEventListener('astro:page-load', () => {
+    document.querySelectorAll('[data-more]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        btn.parentElement?.querySelectorAll('.tail li[hidden]').forEach((li) => li.removeAttribute('hidden'))
+        btn.remove()
+      })
+    })
+  })
+</script>
 
 <style>
   .sentences {
     display: flex;
     flex-direction: column;
     gap: 1.6rem;
-    margin-top: 1.5rem;
+    margin-bottom: 3rem;
   }
 
   .entry .meta {
@@ -101,6 +118,10 @@ const rest = posts.length - lead - tail
     padding: 0;
   }
 
+  .tail li[hidden] {
+    display: none;
+  }
+
   .tail a {
     display: flex;
     align-items: baseline;
@@ -136,9 +157,19 @@ const rest = posts.length - lead - tail
     font-variant-numeric: tabular-nums;
   }
 
-  .rest {
-    margin: -0.8rem 0 0;
+  .more {
+    align-self: flex-start;
+    margin-top: -1rem;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
     font-size: 0.8125rem;
     color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  .more:hover {
+    color: var(--text-primary);
   }
 </style>
