@@ -9,37 +9,76 @@ interface Props {
 }
 
 const { posts, lead, tail } = Astro.props
-const leads = posts.slice(0, lead)
-const tails = posts.slice(lead)
+
+// 날짜 표기 여러 벌 (시안 전환용 — 고르면 하나만 남긴다)
+const dated = posts.map((post, i) => {
+  const iso = isoDate(post.data.pubDate)
+  const [y, m, d] = iso.split('-')
+  const prevYear = i > 0 ? isoDate(posts[i - 1].data.pubDate).slice(0, 4) : ''
+  return {
+    post,
+    iso,
+    year: y,
+    yearStart: y !== prevYear,
+    short: `${Number(m)}.${d}`,
+    dotted: `${y}.${m}.${d}`,
+    month: `${y}년 ${Number(m)}월`
+  }
+})
+const leads = dated.slice(0, lead)
+const tails = dated.slice(lead)
 const rest = tails.length - tail
 ---
 
 <section class="sentences">
   {
-    leads.map((p) => (
-      <article class="entry">
-        <p class="meta">
-          <span>{kindOf(p)}</span>
-          <span>{isoDate(p.data.pubDate)}</span>
-        </p>
-        <h2 class="title">
-          <a href={`/${p.id}/`}>{p.data.title}</a>
-        </h2>
-        <p class="x">{excerpt(p.body)}</p>
-      </article>
+    leads.map(({ post, iso, year, yearStart, short, dotted, month }) => (
+      <>
+        {yearStart && <p class="yr">{year}</p>}
+        <article class="entry">
+          <time class="gutter" datetime={iso}>
+            {short}
+          </time>
+          <div class="body">
+            <p class="meta">
+              <span>{kindOf(post)}</span>
+              <span>{iso}</span>
+            </p>
+            <h2 class="title">
+              <a href={`/${post.id}/`}>{post.data.title}</a>
+              <time class="side" datetime={iso}>
+                {dotted}
+              </time>
+            </h2>
+            <p class="x">{excerpt(post.body)}</p>
+            <time class="foot" datetime={iso}>
+              {month}
+            </time>
+          </div>
+        </article>
+      </>
     ))
   }
   <h2 class="tail-head">그 밖의 글</h2>
   <ul class="tail">
     {
-      tails.map((p, i) => (
-        <li hidden={i >= tail}>
-          <a href={`/${p.id}/`}>
-            <span class="k">{kindOf(p)}</span>
-            <span class="t">{p.data.title}</span>
-            <span class="d">{isoDate(p.data.pubDate)}</span>
-          </a>
-        </li>
+      tails.map(({ post, iso, year, yearStart, short, dotted }, i) => (
+        <>
+          {yearStart && (
+            <li class="yr-li" hidden={i >= tail}>
+              <span class="yr">{year}</span>
+            </li>
+          )}
+          <li hidden={i >= tail}>
+            <a href={`/${post.id}/`}>
+              <span class="g">{short}</span>
+              <span class="k">{kindOf(post)}</span>
+              <span class="t">{post.data.title}</span>
+              <span class="d">{iso}</span>
+              <span class="dd">{dotted}</span>
+            </a>
+          </li>
+        </>
       ))
     }
   </ul>
@@ -69,6 +108,15 @@ const rest = tails.length - tail
     flex-direction: column;
     gap: 1.6rem;
     margin-bottom: 3rem;
+  }
+
+  .yr,
+  .gutter,
+  .side,
+  .foot,
+  .g,
+  .dd {
+    display: none;
   }
 
   .entry .meta {
@@ -119,6 +167,10 @@ const rest = tails.length - tail
   }
 
   .tail li[hidden] {
+    display: none;
+  }
+
+  .tail .yr-li {
     display: none;
   }
 
