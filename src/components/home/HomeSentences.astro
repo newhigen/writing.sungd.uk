@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content'
 import { isoDate, excerpt } from '@/utils/home'
+import KindTitle from '@/components/ui/KindTitle.astro'
 
 interface Props {
   posts: CollectionEntry<'posts'>[]
@@ -20,6 +21,8 @@ const dated = posts.map((post, i) => {
 const leads = dated.slice(0, lead)
 const tails = dated.slice(lead)
 const rest = tails.length - tail
+const ICON =
+  '<svg class="kg" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 4.2C6.6 3.2 4.6 2.9 2.5 3.2v9c2.1-.3 4.1 0 5.5 1 1.4-1 3.4-1.3 5.5-1v-9c-2.1-.3-4.1 0-5.5 1Zm0 0v9" /></svg>'
 ---
 
 <section class="sentences">
@@ -28,12 +31,15 @@ const rest = tails.length - tail
       <>
         {yearStart && <p class="yr">{year}</p>}
         <article class="entry">
-          <time class="gutter" datetime={iso}>
-            {short}
-          </time>
+          <div class="gutter">
+            <time datetime={iso}>{short}</time>
+            {post.data.category === '책' && <Fragment set:html={ICON} />}
+          </div>
           <div>
             <h2 class="title">
-              <a href={`/${post.id}/`}>{post.data.title}</a>
+              <a href={`/${post.id}/`}>
+                <KindTitle title={post.data.title} review={post.data.category === '책'} />
+              </a>
             </h2>
             <p class="x">{excerpt(post.body)}</p>
           </div>
@@ -53,10 +59,13 @@ const rest = tails.length - tail
           )}
           <li hidden={i >= tail}>
             <a href={`/${post.id}/`}>
-              <time class="gutter" datetime={iso}>
-                {short}
-              </time>
-              <span class="t">{post.data.title}</span>
+              <span class="gutter">
+                <time datetime={iso}>{short}</time>
+                {post.data.category === '책' && <Fragment set:html={ICON} />}
+              </span>
+              <span class="t">
+                <KindTitle title={post.data.title} review={post.data.category === '책'} />
+              </span>
             </a>
           </li>
         </>

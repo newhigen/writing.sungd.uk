@@ -1,0 +1,63 @@
+---
+// 임시: 서평 표시 시안 전환기. 고르면 지운다.
+---
+
+<div class="ksw" aria-label="서평 표시 시안">
+  <button data-k="">없음</button>
+  <button data-k="1">책 아이콘</button>
+  <button data-k="2">『』</button>
+  <button data-k="3">여백 아이콘</button>
+</div>
+
+<script is:inline>
+  ;(() => {
+    const q = new URLSearchParams(location.search).get('k')
+    let k = q !== null ? q : localStorage.getItem('sd-k') || ''
+    const apply = () => {
+      if (k) document.documentElement.dataset.k = k
+      else delete document.documentElement.dataset.k
+      document.querySelectorAll('.ksw button').forEach((b) => b.classList.toggle('on', b.dataset.k === k))
+    }
+    apply()
+    document.addEventListener('astro:page-load', () => {
+      apply()
+      document.querySelectorAll('.ksw button').forEach((b) =>
+        b.addEventListener('click', () => {
+          k = b.dataset.k
+          localStorage.setItem('sd-k', k)
+          apply()
+        })
+      )
+    })
+  })()
+</script>
+
+<style is:global>
+  .ksw {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    z-index: 9;
+    font-family: system-ui, sans-serif;
+  }
+  .ksw button {
+    font: inherit;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border: none;
+    border-radius: 0.3rem;
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .ksw button.on {
+    background: var(--text-primary);
+    color: var(--bg);
+  }
+</style>
