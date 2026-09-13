@@ -1,0 +1,138 @@
+---
+import { loadBooks, getHeatmapData, intensityLevel } from '@/utils/books'
+
+const books = loadBooks()
+const { cells, years } = getHeatmapData(books)
+
+const now = new Date()
+const currentYear = now.getFullYear()
+const currentMonth = now.getMonth() + 1
+const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+---
+
+<section class="sec" id="독서-기록">
+  <h2 class="sec-head">
+    <span>독서 기록</span>
+    <em>{books.length}권</em>
+  </h2>
+  <div class="heat" role="grid" aria-label="달마다 읽은 권수">
+    {
+      years.map((year) => {
+        const yearTotal = books.filter((b) => b.year === year).length
+        return (
+          <div class="row" role="row">
+            <span class="y">{year}</span>
+            {months.map((month) => {
+              const cell = cells.get(`${year}-${String(month).padStart(2, '0')}`)
+              const count = cell?.count ?? 0
+              const future = year > currentYear || (year === currentYear && month > currentMonth)
+              const titles = cell?.books.map((b) => b.title).join(', ')
+              return (
+                <span
+                  class:list={['c', { future }]}
+                  data-level={future ? undefined : String(intensityLevel(count))}
+                  role="gridcell"
+                  title={count > 0 ? `${year}년 ${month}월 · ${count}권 — ${titles}` : undefined}
+                  aria-label={future ? undefined : `${year}년 ${month}월 ${count}권`}
+                />
+              )
+            })}
+            <span class="n">{yearTotal}</span>
+          </div>
+        )
+      })
+    }
+  </div>
+  <a class="sec-more" href="/books">책 목록 ›</a>
+</section>
+
+<style>
+  .sec {
+    scroll-margin-top: 1.5rem;
+  }
+
+  .sec-head {
+    margin: 0 0 0.75rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: var(--font-size-m);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .sec-head em {
+    margin-left: auto;
+    font-style: normal;
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-regular);
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .heat {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: fit-content;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 2.5rem repeat(12, 1rem) 1.75rem;
+    gap: 3px;
+    align-items: center;
+  }
+
+  .y,
+  .n {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .n {
+    text-align: right;
+  }
+
+  .c {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 2px;
+    background-color: var(--text-primary);
+    opacity: 0.06;
+  }
+
+  .c[data-level='1'] {
+    opacity: 0.16;
+  }
+  .c[data-level='2'] {
+    opacity: 0.3;
+  }
+  .c[data-level='3'] {
+    opacity: 0.48;
+  }
+  .c[data-level='4'] {
+    opacity: 0.66;
+  }
+  .c[data-level='5'] {
+    opacity: 0.85;
+  }
+
+  .c.future {
+    visibility: hidden;
+  }
+
+  .sec-more {
+    display: inline-block;
+    margin-top: 0.6rem;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+
+  .sec-more:hover {
+    color: var(--text-primary);
+  }
+</style>

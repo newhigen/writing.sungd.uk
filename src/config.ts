@@ -5,14 +5,14 @@ export const themeConfig: ThemeConfig = {
   site: {
     website: 'https://writing.sungd.uk/', // Site domain
     title: 'sungduk', // Site title
-    author: 'sungduk', // Author name
+    author: '조성덕', // Author name
     description: '읽은 것들을, 생각을, 만들면서 알게 된 것을 글로 씁니다.', // Site description
     language: 'ko-kr' // Default language
   },
 
   // GENERAL SETTINGS ////////////////////////////////////////////////////////////////////////////////////
   general: {
-    contentWidth: '35rem', // Content area width
+    contentWidth: '46rem', // Content area width (8rem 차림표 + 36rem 본문)
     centeredLayout: true, // Use centered layout (false for left-aligned)
     themeToggle: true, // Show theme toggle button (uses system theme by default)
     postListDottedDivider: true, // Show dotted divider in post list

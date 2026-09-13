@@ -1,0 +1,133 @@
+---
+import type { CollectionEntry } from 'astro:content'
+
+interface Props {
+  id: string
+  title: string
+  posts: CollectionEntry<'posts'>[]
+  limit: number
+}
+
+const { id, title, posts, limit } = Astro.props
+const rest = posts.length - limit
+
+function isoDate(date: Date) {
+  return date.toISOString().slice(0, 10)
+}
+---
+
+<section class="sec" id={id}>
+  <h2 class="sec-head">
+    <span>{title}</span>
+    <em>{posts.length}편</em>
+  </h2>
+  <ul class="sec-list">
+    {
+      posts.map((post, i) => (
+        <li hidden={i >= limit}>
+          <a href={`/${post.id}/`}>
+            <span class="t">{post.data.title}</span>
+            <span class="d">{isoDate(post.data.pubDate)}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  {
+    rest > 0 && (
+      <button class="sec-more" type="button" data-more>
+        {rest}편 더 ›
+      </button>
+    )
+  }
+</section>
+
+<script is:inline>
+  function initSectionMore() {
+    document.querySelectorAll('[data-more]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const list = btn.parentElement?.querySelector('.sec-list')
+        list?.querySelectorAll('li[hidden]').forEach((li) => li.removeAttribute('hidden'))
+        btn.remove()
+      })
+    })
+  }
+  document.addEventListener('astro:page-load', initSectionMore)
+</script>
+
+<style>
+  .sec {
+    scroll-margin-top: 1.5rem;
+  }
+
+  .sec-head {
+    margin: 0 0 0.5rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: var(--font-size-m);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .sec-head em {
+    margin-left: auto;
+    font-style: normal;
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-regular);
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sec-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .sec-list li[hidden] {
+    display: none;
+  }
+
+  .sec-list a {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.3rem 0;
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .sec-list .t {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sec-list a:hover .t {
+    box-shadow: 0 1px 0 var(--text-tertiary);
+  }
+
+  .sec-list .d {
+    flex: none;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sec-more {
+    margin-top: 0.4rem;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  .sec-more:hover {
+    color: var(--text-primary);
+  }
+</style>

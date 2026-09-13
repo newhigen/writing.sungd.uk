@@ -4,10 +4,8 @@ import type { PostLayoutProps } from '@/types'
 import FormattedDate from '@/components/widgets/FormattedDate.astro'
 import FootnoteScroll from '@/components/widgets/FootnoteScroll.astro'
 import BaseHead from '@/components/layout/BaseHead.astro'
-import Footer from '@/components/layout/Footer.astro'
-import BackButton from '@/components/ui/BackButton.astro'
+import DrawerFrame from '@/components/layout/DrawerFrame.astro'
 import TableOfContents from '@/components/ui/TableOfContents.astro'
-import GradientMask from '@/components/ui/GradientMask.astro'
 import ImageOptimizer from '@/components/ui/ImageOptimizer.astro'
 import ImageViewer from '@/components/ui/ImageViewer.astro'
 import GitHubCard from '@/components/ui/GitHubCard.astro'
@@ -19,10 +17,11 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
 
 import { themeConfig } from '@/config'
 
-const { title, pubDate, readingTime, toc } = Astro.props as PostLayoutProps
+const { title, pubDate, readingTime, toc, category } = Astro.props as PostLayoutProps
 
 const postSlug = Astro.url.pathname.split('/').filter(Boolean).pop() || ''
 const ogImage = `/open-graph/${postSlug}.png`
+const drawerActive = category === '책' ? '서평' : category === '기술' ? '기술' : '글'
 ---
 
 <BaseLayout title={`${title} · ${themeConfig.site.title}`} description={themeConfig.site.description} type="post">
@@ -32,11 +31,9 @@ const ogImage = `/open-graph/${postSlug}.png`
     ogImage={ogImage}
     slot="head"
   />
-  <div class="post-container">
-    <main>
+  <DrawerFrame active={drawerActive}>
+    <div class="post-container">
       <div class="prose">
-        <GradientMask />
-        <BackButton />
         {themeConfig.post.toc && <TableOfContents toc={toc} />}
         <div class="title">
           <h1>{title}</h1>
@@ -56,7 +53,7 @@ const ogImage = `/open-graph/${postSlug}.png`
           <slot />
         </article>
       </div>
-    </main>
+    </div>
     <ImageOptimizer />
     <FootnoteScroll />
     <CopyCode />
@@ -65,18 +62,13 @@ const ogImage = `/open-graph/${postSlug}.png`
     <NeoDBCard />
     {themeConfig.post.imageViewer && <ImageViewer />}
     {themeConfig.post.linkCard && <LinkCard />}
-    {themeConfig.general.footer && <Footer />}
-  </div>
+  </DrawerFrame>
 </BaseLayout>
 
 <style>
   .post-container {
     display: flex;
     flex-direction: column;
-    flex: 1;
-  }
-
-  .post-container main {
     flex: 1;
   }
 </style>
