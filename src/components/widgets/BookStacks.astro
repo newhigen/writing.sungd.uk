@@ -106,7 +106,7 @@ const tallest = Math.max(...rows.flatMap((row) => row.months.map((m) => m.stack.
     // 큰 판은 책마다, 작은 판은 달마다 뜬다
     const show = (target: HTMLElement) => {
       hide()
-      let titles: string[] = []
+      let titles: string[]
       try {
         titles = JSON.parse(target.dataset.tipList ?? '[]')
       } catch {
