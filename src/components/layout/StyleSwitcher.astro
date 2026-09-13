@@ -1,0 +1,194 @@
+---
+// 임시: 글꼴·색 시안 전환기. 고르면 지운다.
+---
+
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;700&family=IBM+Plex+Serif:wght@400;700&family=IBM+Plex+Mono&family=JetBrains+Mono&family=Noto+Serif+KR:wght@400;700&display=swap"
+/>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+/>
+
+<div class="sw" aria-label="시안 전환">
+  <button data-s="">지금</button>
+  <button data-s="1">책장</button>
+  <button data-s="2">한 가족</button>
+</div>
+
+<script is:inline>
+  ;(() => {
+    const q = new URLSearchParams(location.search).get('s')
+    let s = q !== null ? q : localStorage.getItem('sd-s') || ''
+    const apply = () => {
+      if (s) document.documentElement.dataset.s = s
+      else delete document.documentElement.dataset.s
+      document.querySelectorAll('.sw button').forEach((b) => b.classList.toggle('on', b.dataset.s === s))
+    }
+    apply()
+    document.addEventListener('astro:page-load', () => {
+      apply()
+      document.querySelectorAll('.sw button').forEach((b) =>
+        b.addEventListener('click', () => {
+          s = b.dataset.s
+          localStorage.setItem('sd-s', s)
+          apply()
+        })
+      )
+    })
+  })()
+</script>
+
+<style is:global>
+  @font-face {
+    font-family: 'Maru Buri';
+    font-weight: 400;
+    font-display: swap;
+    src: url(https://hangeul.pstatic.net/hangeul_static/webfont/MaruBuri/MaruBuri-Regular.woff2) format('woff2');
+  }
+  @font-face {
+    font-family: 'Maru Buri';
+    font-weight: 700;
+    font-display: swap;
+    src: url(https://hangeul.pstatic.net/hangeul_static/webfont/MaruBuri/MaruBuri-Bold.woff2) format('woff2');
+  }
+
+  .sw {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    z-index: 9;
+    font-family: system-ui, sans-serif;
+  }
+  .sw button {
+    font: inherit;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border: none;
+    border-radius: 0.3rem;
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .sw button.on {
+    background: var(--text-primary);
+    color: var(--bg);
+  }
+
+  /* ── 1 책장: 마루 부리 본문, 종이·먹, 청록 하나 ── */
+  :root[data-s='1'] {
+    --sans: 'Maru Buri', 'Noto Serif KR', serif;
+    --ui: 'Pretendard Variable', Pretendard, sans-serif;
+    --mono: 'JetBrains Mono', 'SF Mono', monospace;
+    --font-size-m: 1rem;
+    --font-size-l: 1.125rem;
+    --bg: #f7f5f0;
+    --text-primary: #1f1d1a;
+    --text-secondary: #77716a;
+    --text-tertiary: #c9c3b8;
+    --border: #e6e1d8;
+    --accent: #1f5f5b;
+    --selection: rgba(31, 95, 91, 0.15);
+    --code-bg: rgba(31, 29, 26, 0.05);
+    --mark: #ece5c4;
+    --astro-code-background: rgba(31, 29, 26, 0.04);
+  }
+  :root.dark[data-s='1'] {
+    --bg: #1b1917;
+    --text-primary: #e8e3da;
+    --text-secondary: #8f887d;
+    --text-tertiary: #4a453f;
+    --border: #2e2a26;
+    --accent: #7fc4bd;
+    --selection: rgba(127, 196, 189, 0.2);
+    --code-bg: rgba(255, 255, 255, 0.05);
+    --mark: #4d4a2e;
+    --astro-code-background: rgba(255, 255, 255, 0.04);
+  }
+  :root[data-s='1'] body {
+    line-height: 1.85;
+  }
+  :root[data-s='1'] .prose .title h1,
+  :root[data-s='1'] .prose h2,
+  :root[data-s='1'] .prose h3,
+  :root[data-s='1'] .page-title {
+    font-weight: 700;
+  }
+  :root[data-s='1'] .frame-side,
+  :root[data-s='1'] .entry .meta,
+  :root[data-s='1'] .tail .k,
+  :root[data-s='1'] .tail .d,
+  :root[data-s='1'] .prose .date,
+  :root[data-s='1'] .page-title em,
+  :root[data-s='1'] .year-name,
+  :root[data-s='1'] .year-count,
+  :root[data-s='1'] .book-month,
+  :root[data-s='1'] footer {
+    font-family: var(--ui);
+  }
+  :root[data-s='1'] .prose a,
+  :root[data-s='1'] .drawer-links a.on,
+  :root[data-s='1'] .tail a:hover .t {
+    color: var(--accent);
+  }
+  :root[data-s='1'] .entry .title a:hover {
+    color: var(--accent);
+    box-shadow: none;
+  }
+
+  /* ── 2 한 가족: IBM Plex 셋, 흰·회청, 파랑 하나 ── */
+  :root[data-s='2'] {
+    --sans: 'IBM Plex Sans KR', 'Noto Sans KR', sans-serif;
+    --serif: 'IBM Plex Serif', 'Noto Serif KR', Georgia, serif;
+    --mono: 'IBM Plex Mono', 'SF Mono', monospace;
+    --bg: #fbfbfa;
+    --text-primary: #1b2430;
+    --text-secondary: #6b7482;
+    --text-tertiary: #c3c8d1;
+    --border: #e4e7ec;
+    --accent: #2d5bd1;
+    --selection: rgba(45, 91, 209, 0.12);
+    --code-bg: rgba(27, 36, 48, 0.05);
+    --mark: #e6eeff;
+    --astro-code-background: rgba(27, 36, 48, 0.04);
+  }
+  :root.dark[data-s='2'] {
+    --bg: #16191e;
+    --text-primary: #e3e6ea;
+    --text-secondary: #8a929e;
+    --text-tertiary: #464c56;
+    --border: #2a2f37;
+    --accent: #7aa2ff;
+    --selection: rgba(122, 162, 255, 0.2);
+    --code-bg: rgba(255, 255, 255, 0.05);
+    --mark: #2b3a5e;
+    --astro-code-background: rgba(255, 255, 255, 0.04);
+  }
+  :root[data-s='2'] .prose .title h1,
+  :root[data-s='2'] .prose h2,
+  :root[data-s='2'] .prose h3,
+  :root[data-s='2'] .entry .title,
+  :root[data-s='2'] .tail-head,
+  :root[data-s='2'] .page-title,
+  :root[data-s='2'] .drawer-me {
+    font-family: var(--serif);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  :root[data-s='2'] .prose a,
+  :root[data-s='2'] .drawer-links a.on,
+  :root[data-s='2'] .tail a:hover .t {
+    color: var(--accent);
+  }
+  :root[data-s='2'] .entry .title a:hover {
+    color: var(--accent);
+    box-shadow: none;
+  }
+</style>
