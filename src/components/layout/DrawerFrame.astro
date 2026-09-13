@@ -2,6 +2,7 @@
 import Drawer from '@/components/layout/Drawer.astro'
 import Footer from '@/components/layout/Footer.astro'
 import GradientMask from '@/components/ui/GradientMask.astro'
+import VariantSwitcher from '@/components/layout/VariantSwitcher.astro'
 import { themeConfig } from '@/config'
 
 interface Props {
@@ -20,6 +21,7 @@ const { active } = Astro.props
     </main>
     {themeConfig.general.footer && <Footer />}
   </div>
+  <VariantSwitcher />
 </div>
 
 <style>

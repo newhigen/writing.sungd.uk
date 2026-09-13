@@ -1,0 +1,61 @@
+---
+// 시안 스위처(임시). 고르고 나면 지운다.
+const variants = [
+  ['a', '기본'],
+  ['b', '먹'],
+  ['c', '종이'],
+  ['d', '밤'],
+  ['e', '코발트'],
+  ['f', '크게'],
+  ['g', '색인']
+]
+---
+
+<div class="v-switch" aria-label="시안 고르기">
+  <span>시안</span>
+  {
+    variants.map(([key, label]) => (
+      <button type="button" data-v={key} title={label}>
+        {key}
+      </button>
+    ))
+  }
+</div>
+
+<script is:inline>
+  ;(function () {
+    var q = new URLSearchParams(location.search).get('v')
+    var v = q
+    if (!v) {
+      try {
+        v = localStorage.getItem('sd-variant')
+      } catch (e) {}
+    }
+    v = v || 'a'
+    document.documentElement.dataset.v = v
+    try {
+      localStorage.setItem('sd-variant', v)
+    } catch (e) {}
+    function paint() {
+      document.querySelectorAll('.v-switch button').forEach(function (b) {
+        b.classList.toggle('on', b.dataset.v === document.documentElement.dataset.v)
+      })
+    }
+    function bind() {
+      paint()
+      document.querySelectorAll('.v-switch button').forEach(function (b) {
+        if (b.dataset.bound) return
+        b.dataset.bound = '1'
+        b.addEventListener('click', function () {
+          document.documentElement.dataset.v = b.dataset.v
+          try {
+            localStorage.setItem('sd-variant', b.dataset.v)
+          } catch (e) {}
+          paint()
+        })
+      })
+    }
+    bind()
+    document.addEventListener('astro:page-load', bind)
+  })()
+</script>
