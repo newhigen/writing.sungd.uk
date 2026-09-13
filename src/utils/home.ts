@@ -6,10 +6,6 @@ export function isTech(post: CollectionEntry<'posts'>) {
   return post.data.category === '기술' || (post.data.tags ?? []).some((tag) => TECH_TAGS.includes(tag))
 }
 
-export function kindOf(post: CollectionEntry<'posts'>) {
-  return post.data.category === '책' ? '서평' : '글'
-}
-
 export function isoDate(date: Date) {
   return date.toISOString().slice(0, 10)
 }
