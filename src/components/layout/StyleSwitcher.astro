@@ -4,20 +4,26 @@
 
 <link
   rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@400;700&family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Song+Myung&family=IBM+Plex+Sans+KR:wght@400;700&family=JetBrains+Mono&display=swap"
+  href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@600;700&family=Nanum+Myeongjo:wght@800&family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@400;700&family=JetBrains+Mono&display=swap"
 />
 <link
   rel="stylesheet"
   href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
 />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css" />
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css"
+/>
 
 <div class="sw" aria-label="글꼴 시안 전환">
   <button data-f="">지금</button>
   <button data-f="1">ㄱ</button>
-  <button data-f="2">ㄴ</button>
-  <button data-f="3">ㄷ</button>
-  <button data-f="4">ㄹ</button>
-  <button data-f="5">ㅁ</button>
+  <button data-f="6">ㅂ</button>
+  <button data-f="7">ㅅ</button>
+  <button data-f="8">ㅇ</button>
+  <button data-f="9">ㅈ</button>
+  <button data-f="10">ㅊ</button>
 </div>
 
 <script is:inline>
@@ -110,42 +116,50 @@
     box-shadow: none;
   }
 
-  /* ── 글꼴 다섯 벌: --head 제목, --sans 본문 ── */
+  @font-face {
+    font-family: 'Maru Buri';
+    font-weight: 700;
+    font-display: swap;
+    src: url(https://hangeul.pstatic.net/hangeul_static/webfont/MaruBuri/MaruBuri-Bold.woff2) format('woff2');
+  }
+
+  /* ── 글꼴: --head 제목(명조), --sans 본문(고딕) ── */
+  :root[data-f] {
+    --head-weight: 700;
+    --head-spacing: 0;
+  }
+  /* ㄱ 함렛 + 프리텐다드 */
   :root[data-f='1'] {
     --head: 'Hahmlet', serif;
     --sans: 'Pretendard Variable', Pretendard, sans-serif;
-    --head-weight: 700;
-    --head-spacing: 0;
   }
-  :root[data-f='2'] {
-    --head: 'Noto Serif KR', serif;
+  /* ㅂ 함렛 세미볼드 + SUIT */
+  :root[data-f='6'] {
+    --head: 'Hahmlet', serif;
+    --sans: 'SUIT Variable', sans-serif;
+    --head-weight: 600;
+  }
+  /* ㅅ 마루 부리 + 프리텐다드 */
+  :root[data-f='7'] {
+    --head: 'Maru Buri', serif;
     --sans: 'Pretendard Variable', Pretendard, sans-serif;
-    --head-weight: 700;
+  }
+  /* ㅇ 나눔명조 엑스트라볼드 + 원티드 산스 */
+  :root[data-f='8'] {
+    --head: 'Nanum Myeongjo', serif;
+    --sans: 'Wanted Sans Variable', sans-serif;
+    --head-weight: 800;
     --head-spacing: -0.01em;
   }
-  :root[data-f='3'] {
-    --head: 'Pretendard Variable', Pretendard, sans-serif;
-    --sans: 'Noto Serif KR', serif;
-    --head-weight: 800;
-    --head-spacing: -0.025em;
-    --font-size-m: 1rem;
-  }
-  :root[data-f='4'] {
+  /* ㅈ 고운바탕 + 프리텐다드 */
+  :root[data-f='9'] {
     --head: 'Gowun Batang', serif;
-    --sans: 'Gowun Dodum', sans-serif;
-    --head-weight: 700;
-    --head-spacing: 0;
-    --font-size-m: 1rem;
+    --sans: 'Pretendard Variable', Pretendard, sans-serif;
   }
-  :root[data-f='5'] {
-    --head: 'Song Myung', serif;
+  /* ㅊ 함렛 + IBM Plex Sans KR */
+  :root[data-f='10'] {
+    --head: 'Hahmlet', serif;
     --sans: 'IBM Plex Sans KR', sans-serif;
-    --head-weight: 400;
-    --head-spacing: 0;
-  }
-  :root[data-f='3'] body,
-  :root[data-f='4'] body {
-    line-height: 1.85;
   }
   :root[data-f] .prose .title h1,
   :root[data-f] .prose h1,
@@ -159,11 +173,5 @@
     font-family: var(--head);
     font-weight: var(--head-weight);
     letter-spacing: var(--head-spacing);
-  }
-  :root[data-f='5'] .prose .title h1 {
-    font-size: 1.875rem;
-  }
-  :root[data-f='5'] .entry .title {
-    font-size: 1.25rem;
   }
 </style>
