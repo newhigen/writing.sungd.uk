@@ -1,6 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content'
-import { kindOf, isoDate, excerpt } from '@/utils/home'
+import { isoDate, excerpt } from '@/utils/home'
 
 interface Props {
   posts: CollectionEntry<'posts'>[]
@@ -10,20 +10,12 @@ interface Props {
 
 const { posts, lead, tail } = Astro.props
 
-// 날짜 표기 여러 벌 (시안 전환용 — 고르면 하나만 남긴다)
+// 날짜는 왼쪽 여백 칸에 월.일, 해가 바뀌는 자리에만 연도를 둔다
 const dated = posts.map((post, i) => {
   const iso = isoDate(post.data.pubDate)
   const [y, m, d] = iso.split('-')
   const prevYear = i > 0 ? isoDate(posts[i - 1].data.pubDate).slice(0, 4) : ''
-  return {
-    post,
-    iso,
-    year: y,
-    yearStart: y !== prevYear,
-    short: `${Number(m)}.${d}`,
-    dotted: `${y}.${m}.${d}`,
-    month: `${y}년 ${Number(m)}월`
-  }
+  return { post, iso, year: y, yearStart: y !== prevYear, short: `${Number(m)}.${d}` }
 })
 const leads = dated.slice(0, lead)
 const tails = dated.slice(lead)
@@ -32,28 +24,18 @@ const rest = tails.length - tail
 
 <section class="sentences">
   {
-    leads.map(({ post, iso, year, yearStart, short, dotted, month }) => (
+    leads.map(({ post, iso, year, yearStart, short }) => (
       <>
         {yearStart && <p class="yr">{year}</p>}
         <article class="entry">
           <time class="gutter" datetime={iso}>
             {short}
           </time>
-          <div class="body">
-            <p class="meta">
-              <span>{kindOf(post)}</span>
-              <span>{iso}</span>
-            </p>
+          <div>
             <h2 class="title">
               <a href={`/${post.id}/`}>{post.data.title}</a>
-              <time class="side" datetime={iso}>
-                {dotted}
-              </time>
             </h2>
             <p class="x">{excerpt(post.body)}</p>
-            <time class="foot" datetime={iso}>
-              {month}
-            </time>
           </div>
         </article>
       </>
@@ -62,20 +44,19 @@ const rest = tails.length - tail
   <h2 class="tail-head">그 밖의 글</h2>
   <ul class="tail">
     {
-      tails.map(({ post, iso, year, yearStart, short, dotted }, i) => (
+      tails.map(({ post, iso, year, yearStart, short }, i) => (
         <>
           {yearStart && (
             <li class="yr-li" hidden={i >= tail}>
-              <span class="yr">{year}</span>
+              {year}
             </li>
           )}
           <li hidden={i >= tail}>
             <a href={`/${post.id}/`}>
-              <span class="g">{short}</span>
-              <span class="k">{kindOf(post)}</span>
+              <time class="gutter" datetime={iso}>
+                {short}
+              </time>
               <span class="t">{post.data.title}</span>
-              <span class="d">{iso}</span>
-              <span class="dd">{dotted}</span>
             </a>
           </li>
         </>
@@ -104,32 +85,41 @@ const rest = tails.length - tail
 
 <style>
   .sentences {
+    --gutter: 3rem;
     display: flex;
     flex-direction: column;
-    gap: 1.6rem;
+    gap: 1.9rem;
     margin-bottom: 3rem;
   }
 
   .yr,
-  .gutter,
-  .side,
-  .foot,
-  .g,
-  .dd {
-    display: none;
+  .yr-li {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
   }
 
-  .entry .meta {
-    margin: 0 0 0.2rem;
-    display: flex;
-    gap: 0.7rem;
-    font-size: 0.8125rem;
-    color: var(--text-secondary);
+  .yr {
+    margin: 0 0 -1.4rem;
+  }
+
+  .entry {
+    display: grid;
+    grid-template-columns: var(--gutter) minmax(0, 1fr);
+    align-items: baseline;
+  }
+
+  .gutter {
+    flex: none;
+    width: var(--gutter);
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
     font-variant-numeric: tabular-nums;
   }
 
   .entry .title {
     margin: 0;
+    font-family: var(--head);
     font-size: 1.125rem;
     font-weight: var(--font-weight-bold);
     line-height: 1.4;
@@ -141,7 +131,7 @@ const rest = tails.length - tail
   }
 
   .entry .title a:hover {
-    box-shadow: 0 1px 0 var(--text-tertiary);
+    color: var(--accent);
   }
 
   .entry .x {
@@ -155,7 +145,8 @@ const rest = tails.length - tail
   }
 
   .tail-head {
-    margin: 1rem 0 0;
+    margin: 1rem 0 0 var(--gutter);
+    font-family: var(--head);
     font-size: var(--font-size-m);
     font-weight: var(--font-weight-bold);
   }
@@ -171,23 +162,15 @@ const rest = tails.length - tail
   }
 
   .tail .yr-li {
-    display: none;
+    margin: 0.9rem 0 0.2rem;
   }
 
   .tail a {
     display: flex;
     align-items: baseline;
-    gap: 0.9rem;
     padding: 0.28rem 0;
     color: var(--text-primary);
     text-decoration: none;
-  }
-
-  .tail .k {
-    flex: none;
-    width: 2.1rem;
-    font-size: 0.75rem;
-    color: var(--text-secondary);
   }
 
   .tail .t {
@@ -199,19 +182,12 @@ const rest = tails.length - tail
   }
 
   .tail a:hover .t {
-    box-shadow: 0 1px 0 var(--text-tertiary);
-  }
-
-  .tail .d {
-    flex: none;
-    font-size: 0.8125rem;
-    color: var(--text-secondary);
-    font-variant-numeric: tabular-nums;
+    color: var(--accent);
   }
 
   .more {
     align-self: flex-start;
-    margin-top: -1rem;
+    margin: -1rem 0 0 var(--gutter);
     padding: 0;
     border: none;
     background: none;

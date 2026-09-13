@@ -6,12 +6,13 @@
   --content-width: 25rem;
 
   /* Typography */
-  --sans: 'Noto Sans KR', Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+  --head: 'Gowun Batang', 'Noto Serif KR', serif;
+  --sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, sans-serif;
   --serif: Besley, Baskerville, Georgia, 'Times New Roman', Times, serif;
-  --mono: 'SF Mono', SFMono-Regular, monospace;
+  --mono: 'JetBrains Mono', 'SF Mono', SFMono-Regular, monospace;
 
   --font-size-s: 0.8125rem;
-  --font-size-m: 0.9375rem;
+  --font-size-m: 1rem;
   --font-size-l: 1.0625rem;
 
   --font-weight-light: 400;
@@ -22,18 +23,19 @@
   --spacing-m: 0;
 
   /* Light Mode Colors (Default) */
-  --bg: #ffffff;
-  --text-primary: #24262a;
-  --text-secondary: #8b8f96;
-  --text-tertiary: #c9ccd2;
-  --border: #ececef;
-  --selection: rgba(0, 0, 0, 0.08);
-  --code-bg: rgba(0, 0, 0, 0.04);
-  --mark: #f3ffc4;
+  --accent: #1f5f5b;
+  --bg: #f7f5f0;
+  --text-primary: #1f1d1a;
+  --text-secondary: #77716a;
+  --text-tertiary: #aea79c;
+  --border: #e6e1d8;
+  --selection: rgba(31, 95, 91, 0.15);
+  --code-bg: rgba(31, 29, 26, 0.05);
+  --mark: #ece5c4;
 
   /* Syntax Theme  */
   --astro-code-foreground: rgba(0, 0, 0, 0.85);
-  --astro-code-background: rgba(0, 0, 0, 0.03);
+  --astro-code-background: rgba(31, 29, 26, 0.04);
   --astro-code-token-constant: rgba(0, 0, 0, 0.85);
   --astro-code-token-string: rgba(0, 0, 0, 0.85);
   --astro-code-token-comment: rgba(0, 0, 0, 0.35);
@@ -47,18 +49,19 @@
 
 /* Light Mode (Explicit) */
 html.light {
-  --bg: #ffffff;
-  --text-primary: #24262a;
-  --text-secondary: #8b8f96;
-  --text-tertiary: #c9ccd2;
-  --border: #ececef;
-  --selection: rgba(0, 0, 0, 0.08);
-  --code-bg: rgba(0, 0, 0, 0.04);
-  --mark: #f3ffc4;
+  --accent: #1f5f5b;
+  --bg: #f7f5f0;
+  --text-primary: #1f1d1a;
+  --text-secondary: #77716a;
+  --text-tertiary: #aea79c;
+  --border: #e6e1d8;
+  --selection: rgba(31, 95, 91, 0.15);
+  --code-bg: rgba(31, 29, 26, 0.05);
+  --mark: #ece5c4;
 
   /* Syntax Theme  */
   --astro-code-foreground: rgba(0, 0, 0, 0.85);
-  --astro-code-background: rgba(0, 0, 0, 0.03);
+  --astro-code-background: rgba(31, 29, 26, 0.04);
   --astro-code-token-constant: rgba(0, 0, 0, 0.85);
   --astro-code-token-string: rgba(0, 0, 0, 0.85);
   --astro-code-token-comment: rgba(0, 0, 0, 0.35);
@@ -72,18 +75,19 @@ html.light {
 
 /* Dark Mode (Explicit) */
 html.dark {
-  --bg: #1c1c1c;
-  --text-primary: #e6e6e3;
-  --text-secondary: #8a8d93;
-  --text-tertiary: #4a4d53;
-  --border: #303236;
-  --selection: rgba(255, 255, 255, 0.08);
-  --code-bg: rgba(255, 255, 255, 0.04);
-  --mark: #545b37;
+  --accent: #7fc4bd;
+  --bg: #1b1917;
+  --text-primary: #e8e3da;
+  --text-secondary: #8f887d;
+  --text-tertiary: #615a51;
+  --border: #2e2a26;
+  --selection: rgba(127, 196, 189, 0.2);
+  --code-bg: rgba(255, 255, 255, 0.05);
+  --mark: #4d4a2e;
 
   /* Syntax Theme  */
   --astro-code-foreground: rgba(255, 255, 255, 0.9);
-  --astro-code-background: rgba(255, 255, 255, 0.03);
+  --astro-code-background: rgba(255, 255, 255, 0.04);
   --astro-code-token-constant: rgba(255, 255, 255, 0.9);
   --astro-code-token-string: rgba(255, 255, 255, 0.9);
   --astro-code-token-comment: rgba(255, 255, 255, 0.35);
@@ -109,7 +113,7 @@ body {
   font-family: var(--sans);
   font-feature-settings: 'ss03' 1;
   font-size: var(--font-size-m);
-  line-height: 1.75;
+  line-height: 1.85;
   color: var(--text-primary);
   min-height: 100vh;
   display: flex;
