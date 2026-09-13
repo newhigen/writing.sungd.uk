@@ -333,15 +333,20 @@ html[data-v='g'] .c {
   bottom: 0.75rem;
   z-index: 200;
   display: flex;
-  align-items: center;
-  gap: 0.15rem;
-  padding: 0.3rem 0.5rem;
-  border-radius: 999px;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 12px;
   background: rgba(20, 20, 22, 0.86);
   color: #ddd;
   font-family: var(--v-mono);
   font-size: 0.7rem;
   backdrop-filter: blur(4px);
+}
+.v-row {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
 }
 .v-switch span {
   margin-right: 0.35rem;

@@ -1,6 +1,7 @@
 @import './fonts.css';
 @import './post.css';
 @import './variants.css';
+@import './variants-layout.css';
 
 :root {
   /* Min Content Width */

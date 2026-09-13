@@ -2,30 +2,29 @@
 import type { CollectionEntry } from 'astro:content'
 
 interface Props {
-  id: string
-  title: string
-  posts: CollectionEntry<'posts'>[]
+  items: { post: CollectionEntry<'posts'>; kind: string }[]
   limit: number
 }
 
-const { id, title, posts, limit } = Astro.props
-const rest = posts.length - limit
+const { items, limit } = Astro.props
+const rest = items.length - limit
 
 function isoDate(date: Date) {
   return date.toISOString().slice(0, 10)
 }
 ---
 
-<section class="sec" id={id}>
+<section class="sec only-stream" id="흐름">
   <h2 class="sec-head">
-    <span>{title}</span>
-    <em>{posts.length}편</em>
+    <span>최근</span>
+    <em>{items.length}편</em>
   </h2>
   <ul class="sec-list">
     {
-      posts.map((post, i) => (
-        <li hidden={i >= limit} data-id={post.id}>
+      items.map(({ post, kind }, i) => (
+        <li hidden={i >= limit}>
           <a href={`/${post.id}/`}>
+            <span class="k">{kind}</span>
             <span class="t">{post.data.title}</span>
             <span class="d">{isoDate(post.data.pubDate)}</span>
           </a>
@@ -42,22 +41,9 @@ function isoDate(date: Date) {
   }
 </section>
 
-<script is:inline>
-  function initSectionMore() {
-    document.querySelectorAll('[data-more]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const list = btn.parentElement?.querySelector('.sec-list')
-        list?.querySelectorAll('li[hidden]').forEach((li) => li.removeAttribute('hidden'))
-        btn.remove()
-      })
-    })
-  }
-  document.addEventListener('astro:page-load', initSectionMore)
-</script>
-
 <style>
   .sec {
-    scroll-margin-top: 1.5rem;
+    display: none;
   }
 
   .sec-head {
@@ -95,6 +81,13 @@ function isoDate(date: Date) {
     padding: 0.3rem 0;
     color: var(--text-primary);
     text-decoration: none;
+  }
+
+  .sec-list .k {
+    flex: none;
+    width: 2.25rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
   }
 
   .sec-list .t {
