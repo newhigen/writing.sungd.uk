@@ -1,0 +1,175 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import { kindOf, isoDate, excerpt } from '@/utils/home'
+
+interface Props {
+  posts: CollectionEntry<'posts'>[]
+  lead: number
+  tail: number
+}
+
+const { posts, lead, tail } = Astro.props
+const leads = posts.slice(0, lead)
+const tails = posts.slice(lead)
+const rest = tails.length - tail
+---
+
+<section class="sentences">
+  {
+    leads.map((p) => (
+      <article class="entry">
+        <p class="meta">
+          <span>{kindOf(p)}</span>
+          <span>{isoDate(p.data.pubDate)}</span>
+        </p>
+        <h2 class="title">
+          <a href={`/${p.id}/`}>{p.data.title}</a>
+        </h2>
+        <p class="x">{excerpt(p.body)}</p>
+      </article>
+    ))
+  }
+  <h2 class="tail-head">그 밖의 글</h2>
+  <ul class="tail">
+    {
+      tails.map((p, i) => (
+        <li hidden={i >= tail}>
+          <a href={`/${p.id}/`}>
+            <span class="k">{kindOf(p)}</span>
+            <span class="t">{p.data.title}</span>
+            <span class="d">{isoDate(p.data.pubDate)}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  {
+    rest > 0 && (
+      <button class="more" type="button" data-more>
+        {rest}편 더 ›
+      </button>
+    )
+  }
+</section>
+
+<script is:inline>
+  document.addEventListener('astro:page-load', () => {
+    document.querySelectorAll('[data-more]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        btn.parentElement?.querySelectorAll('.tail li[hidden]').forEach((li) => li.removeAttribute('hidden'))
+        btn.remove()
+      })
+    })
+  })
+</script>
+
+<style>
+  .sentences {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+    margin-bottom: 3rem;
+  }
+
+  .entry .meta {
+    margin: 0 0 0.2rem;
+    display: flex;
+    gap: 0.7rem;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .entry .title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-bold);
+    line-height: 1.4;
+  }
+
+  .entry .title a {
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .entry .title a:hover {
+    box-shadow: 0 1px 0 var(--text-tertiary);
+  }
+
+  .entry .x {
+    margin: 0.3rem 0 0;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .tail-head {
+    margin: 1rem 0 0;
+    font-size: var(--font-size-m);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .tail {
+    list-style: none;
+    margin: -1rem 0 0;
+    padding: 0;
+  }
+
+  .tail li[hidden] {
+    display: none;
+  }
+
+  .tail a {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    padding: 0.28rem 0;
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .tail .k {
+    flex: none;
+    width: 2.1rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  .tail .t {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tail a:hover .t {
+    box-shadow: 0 1px 0 var(--text-tertiary);
+  }
+
+  .tail .d {
+    flex: none;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .more {
+    align-self: flex-start;
+    margin-top: -1rem;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  .more:hover {
+    color: var(--text-primary);
+  }
+</style>

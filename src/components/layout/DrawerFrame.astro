@@ -1,0 +1,63 @@
+---
+import Drawer from '@/components/layout/Drawer.astro'
+import Footer from '@/components/layout/Footer.astro'
+import GradientMask from '@/components/ui/GradientMask.astro'
+import { themeConfig } from '@/config'
+
+interface Props {
+  active?: string
+}
+
+const { active } = Astro.props
+---
+
+<div class="frame">
+  <GradientMask />
+  <aside class="frame-side">
+    <Drawer active={active} />
+    <slot name="aside" />
+  </aside>
+  <div class="frame-main">
+    <main>
+      <slot />
+    </main>
+    {themeConfig.general.footer && <Footer />}
+  </div>
+</div>
+
+<style>
+  .frame {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr);
+    column-gap: 2.5rem;
+  }
+
+  .frame-side {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    align-self: start;
+  }
+
+  .frame-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .frame-main main {
+    flex: 1;
+  }
+
+  @media (max-width: 640px) {
+    .frame {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 1.5rem;
+    }
+
+    .frame-side {
+      gap: 1.25rem;
+    }
+  }
+</style>

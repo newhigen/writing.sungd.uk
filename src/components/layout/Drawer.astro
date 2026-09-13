@@ -1,0 +1,103 @@
+---
+import ThemeToggle from '@/components/ui/ThemeToggle.astro'
+import { themeConfig } from '@/config'
+
+interface Props {
+  active?: string
+}
+
+const { active = '' } = Astro.props
+
+const items = [
+  { label: '글', href: '/' },
+  { label: '독서 기록', href: '/books' },
+  { label: '영화·시리즈', href: '/movies' },
+  { label: '소개', href: 'https://sungd.uk' }
+]
+---
+
+<nav class="drawer" aria-label="차림표">
+  <a class="drawer-me" href="/">{themeConfig.site.author}</a>
+  <div class="drawer-links">
+    {
+      items.map((item) => (
+        <a
+          href={item.href}
+          class:list={{ on: item.label === active }}
+          aria-current={item.label === active ? 'page' : undefined}
+        >
+          {item.label}
+        </a>
+      ))
+    }
+  </div>
+  {themeConfig.general.themeToggle && <ThemeToggle />}
+</nav>
+
+<style>
+  .drawer {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .drawer-me {
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    text-decoration: none;
+    margin-bottom: 0.25rem;
+  }
+
+  .drawer-links {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .drawer-links a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    line-height: 1.9;
+    white-space: nowrap;
+    transition: color 0.15s ease-out;
+  }
+
+  .drawer-links a:hover,
+  .drawer-links a.on {
+    color: var(--text-primary);
+  }
+
+  .drawer-links a.on::after {
+    content: ' ⟵';
+    font-size: 0.625rem;
+    color: var(--text-secondary);
+  }
+
+  .drawer :global(.theme-toggle) {
+    padding: 0;
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 640px) {
+    .drawer {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.25rem 1rem;
+    }
+
+    .drawer-me {
+      margin: 0 0.5rem 0 0;
+    }
+
+    .drawer-links {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 0 1rem;
+    }
+
+    .drawer :global(.theme-toggle) {
+      margin: 0 0 0 auto;
+      align-self: center;
+    }
+  }
+</style>
