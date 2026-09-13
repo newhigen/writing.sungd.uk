@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content'
 import { isoDate, excerpt } from '@/utils/home'
+import KindTitle from '@/components/ui/KindTitle.astro'
 
 interface Props {
   posts: CollectionEntry<'posts'>[]
@@ -33,7 +34,9 @@ const rest = tails.length - tail
           </time>
           <div>
             <h2 class="title">
-              <a href={`/${post.id}/`}>{post.data.title}</a>
+              <a href={`/${post.id}/`}>
+                <KindTitle title={post.data.title} review={post.data.category === '책'} />
+              </a>
             </h2>
             <p class="x">{excerpt(post.body)}</p>
           </div>
@@ -56,7 +59,9 @@ const rest = tails.length - tail
               <time class="gutter" datetime={iso}>
                 {short}
               </time>
-              <span class="t">{post.data.title}</span>
+              <span class="t">
+                <KindTitle title={post.data.title} review={post.data.category === '책'} />
+              </span>
             </a>
           </li>
         </>
