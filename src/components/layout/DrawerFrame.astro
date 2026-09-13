@@ -15,6 +15,7 @@ const { active } = Astro.props
   <GradientMask />
   <aside class="frame-side">
     <Drawer active={active} />
+    <slot name="aside" />
   </aside>
   <div class="frame-main">
     <main>

@@ -2,6 +2,13 @@
 import { loadBooks, getHeatmapData, type Book } from '@/utils/books'
 
 // 달마다 읽은 책을 눕혀 쌓은 책탑. 한 해가 책상 한 줄이다.
+interface Props {
+  recent?: number // 최근 몇 해만
+  compact?: boolean // 차림표에 들어가는 작은 판
+}
+
+const { recent, compact = false } = Astro.props
+const scale = compact ? 0.5 : 1
 const books = loadBooks()
 const { cells, years } = getHeatmapData(books)
 const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
@@ -29,15 +36,15 @@ const stackOf = (list: Book[]): StackBook[] => {
     below = cover
     return {
       book,
-      thick: book.pages ? clamp(Math.round(3 + book.pages / 75), 4, 12) : 7,
-      shift: i === 0 ? 0 : shift,
-      tilt: i === 0 ? 0 : (((h >>> 12) % 5) - 2) * 0.5,
+      thick: (book.pages ? clamp(Math.round(3 + book.pages / 75), 4, 12) : 7) * scale,
+      shift: i === 0 ? 0 : shift * scale,
+      tilt: i === 0 || compact ? 0 : (((h >>> 12) % 5) - 2) * 0.5,
       cover
     }
   })
 }
 
-const rows = years.map((year) => ({
+const rows = years.slice(0, recent ?? years.length).map((year) => ({
   year,
   total: books.filter((b) => b.year === year).length,
   months: months.map((month) => ({
@@ -49,7 +56,7 @@ const rows = years.map((year) => ({
 const tallest = Math.max(...rows.flatMap((row) => row.months.map((m) => m.stack.reduce((sum, s) => sum + s.thick, 0))))
 ---
 
-<div class="bs" style={`--desk:${tallest + 4}px`}>
+<div class:list={['bs', { compact }]} style={`--desk:${Math.ceil(tallest) + (compact ? 2 : 4)}px`}>
   {
     rows.map((row) => (
       <div class="bs-row">
@@ -74,7 +81,7 @@ const tallest = Math.max(...rows.flatMap((row) => row.months.map((m) => m.stack.
   <div class="bs-row bs-months" aria-hidden="true">
     <span></span>
     <div class="bs-month-labels">
-      {months.map((month) => <span>{month}</span>)}
+      {months.map((month) => <span>{compact && month % 3 !== 0 ? '' : month}</span>)}
     </div>
     <span></span>
   </div>
@@ -221,7 +228,49 @@ const tallest = Math.max(...rows.flatMap((row) => row.months.map((m) => m.stack.
     margin-top: -0.5rem;
   }
 
+  /* 작은 판 */
+  .bs.compact {
+    gap: 0.4rem;
+  }
+
+  .compact .bs-row {
+    grid-template-columns: 2.2rem minmax(0, 1fr) 1.4rem;
+  }
+
+  .compact .bs-year,
+  .compact .bs-total {
+    padding-bottom: 1px;
+    font-size: 0.625rem;
+  }
+
+  .compact .bs-desk,
+  .compact .bs-month-labels {
+    column-gap: 2px;
+  }
+
+  .compact .bs-desk {
+    border-bottom-width: 2px;
+  }
+
+  .compact .bs-book {
+    border-radius: 1px;
+    background: var(--c);
+  }
+
+  .compact .bs-book:hover {
+    translate: 0 -1px;
+  }
+
+  .compact.bs .bs-months {
+    margin-top: -0.2rem;
+  }
+
+  .compact .bs-month-labels span {
+    font-size: 0.5rem;
+  }
+
   .bs-month-labels span {
+    white-space: nowrap;
     font-size: 0.5625rem;
     text-align: center;
     color: var(--text-tertiary);

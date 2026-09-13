@@ -1,0 +1,51 @@
+---
+// 임시: 첫 화면 책탑 자리 시안. 고르면 지운다.
+import IndexLayout from '@/layouts/IndexLayout.astro'
+import BookStacks from '@/components/widgets/BookStacks.astro'
+import HomeSentences from '@/components/home/HomeSentences.astro'
+import { themeConfig } from '@/config'
+import { getSortedFilteredPosts } from '@/utils/draft'
+import { isTech } from '@/utils/home'
+import { loadBooks } from '@/utils/books'
+
+const posts = (await getSortedFilteredPosts()).filter((post) => !isTech(post))
+const count = loadBooks().length
+const thisYear = loadBooks().filter((b) => b.year === new Date().getFullYear()).length
+---
+
+<IndexLayout title={themeConfig.site.title} description={themeConfig.site.description}>
+  <section class="stacks-main">
+    <h2 class="stacks-head"><a href="/books">올해 읽은 책</a><em>{thisYear}권</em></h2>
+    <BookStacks recent={1} />
+  </section>
+  <HomeSentences posts={posts} lead={6} tail={12} />
+</IndexLayout>
+
+<style>
+  .stacks-head {
+    margin: 0 0 0.75rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: var(--font-weight-bold);
+  }
+  .stacks-head a {
+    font-family: var(--head);
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+  .stacks-head em {
+    font-style: normal;
+    font-size: 0.7rem;
+    font-weight: var(--font-weight-regular);
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .stacks-main {
+    margin: 0 0 3rem;
+  }
+  .stacks-foot {
+    margin: 3.5rem 0 0;
+  }
+</style>
