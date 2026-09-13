@@ -93,9 +93,12 @@ const yearSections: YearSection[] = yearGroups.map((group) => {
                 <li class="book-entry">
                   <span class="book-month">{entry.showMonth ? monthNames[entry.month - 1] : ''}</span>
                   {entry.postUrl ? (
-                    <a href={entry.postUrl} class="book-title linked">
-                      {entry.title}
-                    </a>
+                    <>
+                      <a href={entry.postUrl} class="book-title linked">
+                        {entry.title}
+                      </a>
+                      <span class="entry-note">서평</span>
+                    </>
                   ) : (
                     <span class="book-title">{entry.title}</span>
                   )}

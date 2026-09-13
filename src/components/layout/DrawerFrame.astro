@@ -2,7 +2,7 @@
 import Drawer from '@/components/layout/Drawer.astro'
 import Footer from '@/components/layout/Footer.astro'
 import GradientMask from '@/components/ui/GradientMask.astro'
-import LayoutSwitcher from '@/components/layout/LayoutSwitcher.astro'
+import PreviewSwitcher from '@/components/layout/PreviewSwitcher.astro'
 import { themeConfig } from '@/config'
 
 interface Props {
@@ -24,7 +24,7 @@ const { active } = Astro.props
     </main>
     {themeConfig.general.footer && <Footer />}
   </div>
-  <LayoutSwitcher />
+  <PreviewSwitcher />
 </div>
 
 <style>
@@ -52,6 +52,22 @@ const { active } = Astro.props
     flex: 1;
   }
 
+  /* 넓은 화면: 글 칸을 화면 가운데에 두고 차림표·히트맵은 왼쪽 여백에 건다 */
+  @media (min-width: 1200px) {
+    .frame {
+      display: block;
+      position: relative;
+    }
+
+    .frame-side {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: calc(100% + 2.5rem);
+      width: 13rem;
+    }
+  }
+
   @media (max-width: 640px) {
     .frame {
       grid-template-columns: minmax(0, 1fr);
@@ -60,6 +76,14 @@ const { active } = Astro.props
 
     .frame-side {
       gap: 1.25rem;
+    }
+  }
+</style>
+
+<style is:global>
+  @media (min-width: 1200px) {
+    body[data-centered='true'] {
+      max-width: 34.5rem !important;
     }
   }
 </style>
