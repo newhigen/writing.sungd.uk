@@ -36,7 +36,7 @@ tags: [독서]
 - **링크 카드는 꺼져 있다.** 서버 라우트가 필요한데 GitHub Pages 는 정적만 서빙한다
   (`src/config.ts` 의 `linkCard`).
 - 테마 원본을 따라가려면 `pnpm update-theme`.
-- 기술 글은 쓰지 않는다. 있던 12편은 2026-09-14 에 `projects.sungd.uk/notes/` 로 옮겼다.
+- 기술 글은 쓰지 않는다. 있던 12편은 2026-09-14 에 https://dev.sungd.uk/notes/ 로 옮겼다.
 
 ## Preview
 
