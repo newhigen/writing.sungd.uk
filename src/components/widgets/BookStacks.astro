@@ -68,9 +68,7 @@ const tallest = Math.max(...rows.flatMap((row) => row.months.map((m) => m.stack.
               tabindex={stack.length ? 0 : undefined}
               aria-label={stack.length ? `${row.year}년 ${month}월 ${stack.length}권` : undefined}
               data-tip-head={stack.length ? `${row.year}년 ${month}월 · ${stack.length}권` : undefined}
-              data-tip-list={
-                stack.length ? JSON.stringify(stack.map((s) => [s.book.title, s.book.pages ?? 0])) : undefined
-              }
+              data-tip-list={stack.length ? JSON.stringify(stack.map((s) => s.book.title)) : undefined}
             >
               {stack.map((s) => (
                 <i
@@ -107,7 +105,7 @@ const tallest = Math.max(...rows.flatMap((row) => row.months.map((m) => m.stack.
     // 달마다 그달 책 목록이 뜬다. 마우스는 올리면, 손가락은 누르면.
     const show = (target: HTMLElement) => {
       hide()
-      let entries: [string, number][]
+      let entries: string[]
       try {
         entries = JSON.parse(target.dataset.tipList ?? '[]')
       } catch {
@@ -120,16 +118,11 @@ const tallest = Math.max(...rows.flatMap((row) => row.months.map((m) => m.stack.
       head.textContent = target.dataset.tipHead ?? ''
       tip.appendChild(head)
       const list = document.createElement('ul')
-      for (const [title, pages] of entries) {
+      for (const title of entries) {
         const li = document.createElement('li')
         const name = document.createElement('span')
         name.textContent = title
         li.appendChild(name)
-        if (pages) {
-          const count = document.createElement('em')
-          count.textContent = `${pages}쪽`
-          li.appendChild(count)
-        }
         list.appendChild(li)
       }
       tip.appendChild(list)
@@ -238,15 +231,6 @@ const tallest = Math.max(...rows.flatMap((row) => row.months.map((m) => m.stack.
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-
-  .bs-tip li em {
-    margin-left: auto;
-    flex: none;
-    font-style: normal;
-    font-size: 0.6875rem;
-    color: var(--text-tertiary);
-    font-variant-numeric: tabular-nums;
   }
 </style>
 
