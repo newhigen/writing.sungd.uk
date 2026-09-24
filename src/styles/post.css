@@ -209,13 +209,17 @@
   margin: 0;
 }
 
-.prose blockquote cite {
-  display: inline-block;
-  margin-top: 0.5em;
+.prose cite {
   font-style: normal;
   font-size: 0.8125rem;
   color: var(--text-tertiary);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.prose blockquote cite {
+  display: inline-block;
+  margin-top: 0.5em;
 }
 
 /* GitHub-style alerts/callouts */
