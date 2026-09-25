@@ -34,8 +34,7 @@
 /* Inline quote with page */
 .prose q {
   quotes: '\201C' '\201D';
-  font-family: var(--quote);
-  color: color-mix(in srgb, var(--text-primary) 85%, var(--bg));
+  color: var(--text-secondary);
 }
 
 .prose q::before,

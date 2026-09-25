@@ -7,15 +7,14 @@
 
   /* Typography */
   --head: 'BookkMyungjo', 'Gowun Batang', 'Noto Serif KR', serif;
-  --quote: 'RIDIBatang', 'BookkMyungjo', serif;
-  --num: var(--sans);
-  --sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, sans-serif;
+  --num: 'Wanted Sans Variable', 'Wanted Sans', 'Pretendard Variable', Pretendard, sans-serif;
+  --sans: 'MaruBuri', 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, serif;
   --serif: Besley, Baskerville, Georgia, 'Times New Roman', Times, serif;
   --mono: 'JetBrains Mono', 'SF Mono', SFMono-Regular, monospace;
 
   --font-size-s: 0.8125rem;
-  --font-size-m: 1rem;
-  --font-size-l: 1.0625rem;
+  --font-size-m: 1.0625rem;
+  --font-size-l: 1.125rem;
 
   --font-weight-light: 400;
   --font-weight-regular: 400;
@@ -129,6 +128,7 @@ body {
   text-spacing-trim: space-first;
   text-rendering: optimizeLegibility;
   font-synthesis: none;
+  word-break: keep-all;
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
