@@ -44,7 +44,6 @@ const rest = tails.length - tail
       </>
     ))
   }
-  {lead > 0 && <slot name="mid" />}
   {lead > 0 && <h2 class="tail-head">그 밖의 글</h2>}
   <ul class="tail">
     {
@@ -76,7 +75,6 @@ const rest = tails.length - tail
       </button>
     )
   }
-  {lead === 0 && <slot name="mid" />}
 </section>
 
 <script is:inline>
