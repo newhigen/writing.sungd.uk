@@ -8,6 +8,7 @@
   /* Typography */
   --head: 'BookkMyungjo', 'Gowun Batang', 'Noto Serif KR', serif;
   --quote: 'RIDIBatang', 'BookkMyungjo', serif;
+  --num: var(--sans);
   --sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, sans-serif;
   --serif: Besley, Baskerville, Georgia, 'Times New Roman', Times, serif;
   --mono: 'JetBrains Mono', 'SF Mono', SFMono-Regular, monospace;
@@ -25,7 +26,7 @@
 
   /* Light Mode Colors (Default) */
   --accent: #1f5f5b;
-  --bg: #f7f5f0;
+  --bg: #fcfbf9;
   --text-primary: #1f1d1a;
   --text-secondary: #77716a;
   --text-tertiary: #948b7f;
@@ -51,7 +52,7 @@
 /* Light Mode (Explicit) */
 html.light {
   --accent: #1f5f5b;
-  --bg: #f7f5f0;
+  --bg: #fcfbf9;
   --text-primary: #1f1d1a;
   --text-secondary: #77716a;
   --text-tertiary: #948b7f;
@@ -207,6 +208,7 @@ main {
   opacity: 0.75;
   flex-shrink: 0;
   letter-spacing: var(--spacing-s);
+  font-family: var(--num);
   font-variant-numeric: tabular-nums;
   font-feature-settings:
     'tnum' 1,

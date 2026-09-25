@@ -234,6 +234,7 @@
   font-style: normal;
   font-size: 0.8125rem;
   color: var(--text-tertiary);
+  font-family: var(--num);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -386,6 +387,7 @@
   text-align: left;
   color: var(--text-secondary);
   opacity: 0.75;
+  font-family: var(--num);
   font-variant-numeric: tabular-nums;
   font-feature-settings:
     'tnum' 1,
@@ -561,6 +563,7 @@
 
 .prose [data-footnote-ref] {
   font-size: 1em;
+  font-family: var(--num);
   font-variant-numeric: tabular-nums;
   font-feature-settings:
     'tnum' 1,
