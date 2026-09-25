@@ -3,6 +3,7 @@ import type { TOCItem, ReadingTime } from './content.types'
 // TOC component props interface
 export interface TOCProps {
   toc?: TOCItem[]
+  more?: { id: string; title: string; pubDate: Date; review: boolean }[]
 }
 
 // Post layout props interface (generic, not tied to specific data source)

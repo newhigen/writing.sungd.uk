@@ -69,6 +69,7 @@ const { active } = Astro.props
   @media (max-width: 640px) {
     .frame {
       grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto 1fr;
       row-gap: 1.5rem;
     }
 
@@ -81,7 +82,7 @@ const { active } = Astro.props
 <style is:global>
   @media (min-width: 1200px) {
     body[data-centered='true'] {
-      max-width: 34.5rem !important;
+      max-width: 38rem !important;
     }
   }
 </style>
