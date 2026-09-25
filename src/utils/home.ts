@@ -18,5 +18,7 @@ export function excerpt(body = '', max = 150) {
     .replace(/<\/q>/g, '”')
     .replace(/<[^>]+>/g, '')
     .replace(/[*_`]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
   return text.length > max ? text.slice(0, max).trimEnd() + '…' : text
 }
