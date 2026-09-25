@@ -44,8 +44,8 @@ const rest = tails.length - tail
       </>
     ))
   }
-  <slot name="mid" />
-  <h2 class="tail-head">그 밖의 글</h2>
+  {lead > 0 && <slot name="mid" />}
+  {lead > 0 && <h2 class="tail-head">그 밖의 글</h2>}
   <ul class="tail">
     {
       tails.map(({ post, iso, year, yearStart, short }, i) => (
@@ -76,6 +76,7 @@ const rest = tails.length - tail
       </button>
     )
   }
+  {lead === 0 && <slot name="mid" />}
 </section>
 
 <script is:inline>
@@ -85,6 +86,17 @@ const rest = tails.length - tail
         btn.parentElement?.querySelectorAll('.tail li[hidden]').forEach((li) => li.removeAttribute('hidden'))
         btn.remove()
       })
+    })
+
+    // 30일 안에 올린 글은 날짜 대신 「오늘」「어제」「N일 전」으로 적는다. 빌드는 가끔이라 보는 날 기준으로 센다
+    const day = 864e5
+    const today = new Date().setHours(0, 0, 0, 0)
+    document.querySelectorAll('.sentences time[datetime]').forEach((t) => {
+      const [y, m, d] = (t.getAttribute('datetime') || '').slice(0, 10).split('-').map(Number)
+      const n = Math.round((today - new Date(y, m - 1, d).getTime()) / day)
+      if (n < 0 || n >= 30) return
+      t.textContent = n === 0 ? '오늘' : n === 1 ? '어제' : `${n}일 전`
+      t.classList.add('is-new')
     })
   })
 </script>
@@ -157,6 +169,10 @@ const rest = tails.length - tail
     font-family: var(--head);
     font-size: var(--font-size-m);
     font-weight: var(--font-weight-bold);
+  }
+
+  .gutter.is-new {
+    color: var(--accent);
   }
 
   .tail {
