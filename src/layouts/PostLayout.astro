@@ -17,7 +17,7 @@ import KindTitle from '@/components/ui/KindTitle.astro'
 
 import { themeConfig } from '@/config'
 
-const { title, pubDate, toc, category } = Astro.props as PostLayoutProps
+const { title, pubDate, toc, category, more = [] } = Astro.props as PostLayoutProps
 
 const postSlug = Astro.url.pathname.split('/').filter(Boolean).pop() || ''
 const ogImage = `/open-graph/${postSlug}.png`
@@ -35,16 +35,37 @@ const ogImage = `/open-graph/${postSlug}.png`
       <div class="prose">
         {themeConfig.post.toc && <PostToc toc={toc ?? []} placement="margin" />}
         <div class="title">
+          <h1><KindTitle title={title} review={category === '책'} /></h1>
           <div class="date">
             <time datetime={pubDate.toISOString()}>{pubDate.toISOString().slice(0, 10).replaceAll('-', '.')}</time>
           </div>
-          <h1><KindTitle title={title} review={category === '책'} /></h1>
         </div>
         {themeConfig.post.toc && <PostToc toc={toc ?? []} placement="inline" />}
         <article class="content">
           <slot />
         </article>
       </div>
+      {
+        more.length > 0 && (
+          <nav class="more-posts" aria-label="다른 글">
+            <h2>{category === '책' ? '다른 서평' : '다른 글'}</h2>
+            <ul>
+              {more.map((p) => (
+                <li>
+                  <a href={`/${p.id}/`}>
+                    <time datetime={p.pubDate.toISOString()}>
+                      {p.pubDate.toISOString().slice(0, 7).replace('-', '.')}
+                    </time>
+                    <span class="t">
+                      <KindTitle title={p.title} review={p.review} />
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )
+      }
     </div>
     <ImageOptimizer />
     <FootnoteScroll />
@@ -66,7 +87,6 @@ const ogImage = `/open-graph/${postSlug}.png`
 
   .title .date {
     display: block;
-    margin-bottom: 0.25rem;
     font-size: 0.75rem;
     color: var(--text-tertiary);
     opacity: 1;
@@ -74,5 +94,51 @@ const ogImage = `/open-graph/${postSlug}.png`
 
   .title .date :global(*) {
     font-size: inherit;
+  }
+
+  .more-posts {
+    margin: -4rem 0 6rem;
+  }
+
+  .more-posts h2 {
+    margin: 0 0 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: var(--text-tertiary);
+  }
+
+  .more-posts ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .more-posts a {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.3rem 0;
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .more-posts time {
+    flex: none;
+    width: 3.25rem;
+    font-family: var(--num);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-tertiary);
+  }
+
+  .more-posts .t {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .more-posts a:hover .t {
+    color: var(--accent);
   }
 </style>

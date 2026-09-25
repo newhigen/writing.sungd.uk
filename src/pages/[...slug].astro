@@ -2,6 +2,7 @@
 import { type CollectionEntry, getCollection } from 'astro:content'
 import PostLayout from '@/layouts/PostLayout.astro'
 import { render } from 'astro:content'
+import { getSortedFilteredPosts } from '@/utils/draft'
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts')
@@ -22,8 +23,18 @@ const readingTime = remarkPluginFrontmatter.readingTime
 const toc = headings
   .filter((h) => h.depth <= 3 && h.text.toLowerCase() !== 'footnotes')
   .map((h, index) => ({ level: h.depth, text: h.text, id: h.slug, index }))
+
+// 글 끝 「다른 글」: 같은 갈래(서평끼리, 그 밖끼리)에서 날짜가 가까운 다섯 편
+const isReview = (p: CollectionEntry<'posts'>) => p.data.category === '책'
+const at = post.data.pubDate.valueOf()
+const more = (await getSortedFilteredPosts())
+  .filter((p) => p.id !== post.id && isReview(p) === isReview(post))
+  .sort((a, b) => Math.abs(a.data.pubDate.valueOf() - at) - Math.abs(b.data.pubDate.valueOf() - at))
+  .slice(0, 5)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .map((p) => ({ id: p.id, title: p.data.title, pubDate: p.data.pubDate, review: isReview(p) }))
 ---
 
-<PostLayout {...post.data} readingTime={readingTime} toc={toc}>
+<PostLayout {...post.data} readingTime={readingTime} toc={toc} more={more}>
   <Content />
 </PostLayout>
