@@ -11,42 +11,17 @@ const bookCount = loadBooks().length
 ---
 
 <IndexLayout title={themeConfig.site.title} description={themeConfig.site.description}>
-  <section class="reading reading-side" slot="aside">
+  <section class="reading" slot="aside">
     <h2 class="reading-head">
       <a href="/books">독서 기록</a>
       <em>{bookCount}권</em>
     </h2>
     <BookStacks compact />
   </section>
-  <HomeSentences posts={posts} lead={0} tail={30}>
-    <section class="reading reading-mid" slot="mid">
-      <h2 class="reading-head">
-        <a href="/books">독서 기록</a>
-        <em>{bookCount}권</em>
-      </h2>
-      <BookStacks compact />
-    </section>
-  </HomeSentences>
+  <HomeSentences posts={posts} lead={0} tail={30} />
 </IndexLayout>
 
 <style>
-  /* 폰에선 책탑을 맨 위 대신 최근 글 뒤에 작게 둔다 */
-  .reading-mid {
-    display: none;
-  }
-
-  @media (max-width: 640px) {
-    .reading-side {
-      display: none;
-    }
-
-    .reading-mid {
-      display: block;
-      width: 13rem;
-      margin: 1rem 0 0 3rem;
-    }
-  }
-
   .reading-head {
     margin: 0 0 0.75rem;
     display: flex;
