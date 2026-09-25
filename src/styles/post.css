@@ -25,6 +25,26 @@
   margin: 0 0 0.375rem 0;
 }
 
+@media (max-width: 430px) {
+  .prose .title h1 {
+    font-size: 1.375rem;
+  }
+}
+
+/* Inline quote with page */
+.prose q {
+  quotes: '\201C' '\201D';
+  color: var(--text-secondary);
+}
+
+.prose q::before,
+.prose q::after {
+  color: var(--accent);
+  font-size: 1.25em;
+  line-height: 0;
+  vertical-align: -0.1em;
+}
+
 /* Headings (h1-h5) */
 .prose h1,
 .prose h2,
@@ -79,7 +99,7 @@
 
 /* Paragraphs */
 .prose p {
-  line-height: 1.85;
+  line-height: 1.8;
   margin: 0.8em 0;
 }
 
@@ -207,6 +227,15 @@
 
 .prose blockquote p {
   margin: 0;
+}
+
+.prose cite {
+  font-style: normal;
+  font-size: 0.8125rem;
+  color: var(--text-tertiary);
+  font-family: var(--num);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .prose blockquote cite {
@@ -357,6 +386,7 @@
   text-align: left;
   color: var(--text-secondary);
   opacity: 0.75;
+  font-family: var(--num);
   font-variant-numeric: tabular-nums;
   font-feature-settings:
     'tnum' 1,
@@ -532,6 +562,7 @@
 
 .prose [data-footnote-ref] {
   font-size: 1em;
+  font-family: var(--num);
   font-variant-numeric: tabular-nums;
   font-feature-settings:
     'tnum' 1,

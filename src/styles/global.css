@@ -6,14 +6,15 @@
   --content-width: 25rem;
 
   /* Typography */
-  --head: 'Gowun Batang', 'Noto Serif KR', serif;
-  --sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, sans-serif;
+  --head: 'BookkMyungjo', 'Gowun Batang', 'Noto Serif KR', serif;
+  --num: 'Wanted Sans Variable', 'Wanted Sans', 'Pretendard Variable', Pretendard, sans-serif;
+  --sans: 'MaruBuri', 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, serif;
   --serif: Besley, Baskerville, Georgia, 'Times New Roman', Times, serif;
   --mono: 'JetBrains Mono', 'SF Mono', SFMono-Regular, monospace;
 
   --font-size-s: 0.8125rem;
-  --font-size-m: 1rem;
-  --font-size-l: 1.0625rem;
+  --font-size-m: 1.0625rem;
+  --font-size-l: 1.125rem;
 
   --font-weight-light: 400;
   --font-weight-regular: 400;
@@ -24,10 +25,10 @@
 
   /* Light Mode Colors (Default) */
   --accent: #1f5f5b;
-  --bg: #f7f5f0;
+  --bg: #fcfbf9;
   --text-primary: #1f1d1a;
   --text-secondary: #77716a;
-  --text-tertiary: #aea79c;
+  --text-tertiary: #948b7f;
   --border: #e6e1d8;
   --selection: rgba(31, 95, 91, 0.15);
   --code-bg: rgba(31, 29, 26, 0.05);
@@ -50,10 +51,10 @@
 /* Light Mode (Explicit) */
 html.light {
   --accent: #1f5f5b;
-  --bg: #f7f5f0;
+  --bg: #fcfbf9;
   --text-primary: #1f1d1a;
   --text-secondary: #77716a;
-  --text-tertiary: #aea79c;
+  --text-tertiary: #948b7f;
   --border: #e6e1d8;
   --selection: rgba(31, 95, 91, 0.15);
   --code-bg: rgba(31, 29, 26, 0.05);
@@ -79,7 +80,7 @@ html.dark {
   --bg: #1b1917;
   --text-primary: #e8e3da;
   --text-secondary: #8f887d;
-  --text-tertiary: #615a51;
+  --text-tertiary: #7a7368;
   --border: #2e2a26;
   --selection: rgba(127, 196, 189, 0.2);
   --code-bg: rgba(255, 255, 255, 0.05);
@@ -113,7 +114,7 @@ body {
   font-family: var(--sans);
   font-feature-settings: 'ss03' 1;
   font-size: var(--font-size-m);
-  line-height: 1.85;
+  line-height: 1.8;
   color: var(--text-primary);
   min-height: 100vh;
   display: flex;
@@ -127,6 +128,7 @@ body {
   text-spacing-trim: space-first;
   text-rendering: optimizeLegibility;
   font-synthesis: none;
+  word-break: keep-all;
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
@@ -145,15 +147,15 @@ body {
 
 @media (max-width: 430px) {
   :root {
-    --font-size-s: 0.625rem;
-    --font-size-m: 0.75rem;
-    --font-size-l: 0.875rem;
+    --font-size-s: 0.75rem;
+    --font-size-m: 0.9375rem;
+    --font-size-l: 1rem;
   }
 
   body {
     padding-block: 0.875rem 0.75rem;
     margin: 0 0.875rem;
-    line-height: 1.6;
+    line-height: 1.75;
   }
 
   body[data-centered='true'] {
@@ -206,6 +208,7 @@ main {
   opacity: 0.75;
   flex-shrink: 0;
   letter-spacing: var(--spacing-s);
+  font-family: var(--num);
   font-variant-numeric: tabular-nums;
   font-feature-settings:
     'tnum' 1,
