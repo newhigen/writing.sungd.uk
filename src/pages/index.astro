@@ -22,6 +22,13 @@ const bookCount = loadBooks().length
 </IndexLayout>
 
 <style>
+  /* 폰에선 최근 두 해만 */
+  @media (max-width: 640px) {
+    .reading :global(.bs-row:nth-child(n + 3):not(.bs-months)) {
+      display: none;
+    }
+  }
+
   .reading-head {
     margin: 0 0 0.75rem;
     display: flex;
