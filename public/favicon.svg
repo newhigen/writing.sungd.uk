@@ -1,3 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <text x="16" y="26" text-anchor="middle" font-size="26" font-family="Georgia, serif" fill="#111">&#182;</text>
+  <style>
+    /* 여는 따옴표 둘 — 남의 말을 옮기고 내 말을 얹는 자리.
+       밤 판에서는 초록이 가라앉아 한 단 밝게 든다 */
+    .a { fill: #2f6b52 }
+    .b { fill: #8fb8a4 }
+    @media (prefers-color-scheme: dark) {
+      .a { fill: #4f9a76 }
+      .b { fill: #a8cbb8 }
+    }
+  </style>
+  <path class="a" d="M5 20 Q5 10 13 8 L13 12 Q9 13 9 17 L13 17 L13 24 L5 24 Z"/>
+  <path class="b" d="M19 20 Q19 10 27 8 L27 12 Q23 13 23 17 L27 17 L27 24 L19 24 Z"/>
 </svg>
